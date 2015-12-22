@@ -35,7 +35,9 @@ router.get('/:id',function(req,res){
 	query.equalTo('discoverId',parseInt(req.params.id));
 	query.include('game');
 	query.first().then(function(discover){
-		res.json(discover);
+		var result = discover.toJSON();
+		result.game = discover.get('game');
+		res.json(result);
 	},function(err){
 		res.json(err);
 	});
