@@ -37,11 +37,67 @@ router.get('/:id',function(req,res){
 	query.first().then(function(discover){
 		var result = discover.toJSON();
 		result.game = discover.get('game');
-		res.json(result);
+
+		// var game = AV.Object.extend('Game');
+		// var querygame = new AV.Query(game);
+		// querygame.equalTo("objectId",result.game.id);
+		// var otherUser    = new AV.Query(Discover);
+		// otherUser.matchesQuery('game',querygame);
+		// //queryother.notEqualTo('userId',result.userId);
+		// otherUser.ascending("createdAt");
+		// otherUser.find().then(function(success){
+		// 	result.other = success;
+		// 	res.json(result);
+		// },function(err){
+		// 	result.other = success;
+		// 	res.json(result);
+		// });
+		// 
+		AV.Promise.all([
+			getOtherUser(result.game.id,result.userId),
+			getOtherGame(result.game.id,result.userId)
+		]).then(function(successs){
+			result.otherUser = successs[0];
+			result.otherGame = successs[1];
+			res.json(result);
+		},function(errs){
+			result.otherUser = errs[0];
+			result.otherGame = errs[1];
+			res.json(result);
+		});
+		
 	},function(err){
 		res.json(err);
 	});
+
 });
+
+function getOtherUser(gameid,userid){
+	var Discover = AV.Object.extend('Discover');
+	var game = AV.Object.extend('Game');
+	var querygame = new AV.Query(game);
+	querygame.equalTo("objectId",gameid);
+	var queryuser    = new AV.Query(Discover);
+	queryuser.matchesQuery('game',querygame);
+	queryuser.notEqualTo('userId',userid);
+	queryuser.ascending("createdAt");
+
+	return queryuser.find();
+}
+
+function getOtherGame(gameid,userid){
+	var game = AV.Object.extend('Game');
+	var query = new AV.Query(game);
+	query.equalTo("objectId",gameid);
+	var Discover = AV.Object.extend('Discover');
+	var querygame = new AV.Query(Discover);
+	querygame.doesNotMatchQuery('game',query);
+	querygame.equalTo('userId',userid);
+	querygame.limit(10);
+	querygame.descending("createdAt");
+
+	return querygame.find();
+}
 
 function validDiscover(discover){
 	var result         = {};
