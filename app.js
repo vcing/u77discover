@@ -1,3 +1,4 @@
+
 /**
  * U77发现系统Resetful后端系统
  *
@@ -7,15 +8,15 @@
 
 'use strict';
 
-const domain       = require('domain');
-const express      = require('express');
-const path         = require('path')
-const cookieParser = require('cookie-parser');
-const bodyParser   = require('body-parser');
-const config       = require('./config/config.js');
-const AV           = require('leanengine');
-const api          = require('./api');
-const app          = express();
+var domain       = require('domain');
+var express      = require('express');
+var path         = require('path')
+var cookieParser = require('cookie-parser');
+var bodyParser   = require('body-parser');
+var config       = require('./config/config.js');
+var AV           = require('leanengine');
+var api          = require('./api');
+var app          = express();
 
 
 // 使用 LeanEngine 中间件
@@ -36,7 +37,7 @@ app.use(express.static('public'));
 
 // 跨域支持
 app.all('/api/*', (req, res, next) => {
-  const origin = req.headers.origin;
+  var origin = req.headers.origin;
   if (config.whiteOrigins.indexOf(origin) !== -1) {
     res.header('Access-Control-Allow-Origin', origin);
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');

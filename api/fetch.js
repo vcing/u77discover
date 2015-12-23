@@ -1,12 +1,11 @@
 var AV      = require('../cloud/av.js');
 var router  = require('express').Router();
 var q       = require('q');
-var jsdom   = require('jsdom');
+var cheerio = require('cheerio');
 var request = require('request');
 var iconv   = require('iconv-lite');
 var jquery  = './jquery.min.js';
 var err 	= require('../cloud/error.js');
-// var jquery  = require('jquery');
 var _       = require('lodash');
 var moment  = require('moment');
 
@@ -28,34 +27,23 @@ var support = {
 				return false;	
 			}
 			var html = iconv.decode(new Buffer(res.body),'GBK').toString();
-			jsdom.env({
-				html:html,
-				scripts:[jquery],
-				done:function(err,window){
-					if(err){
-						deferred.reject(new Error('jquery注入错误.'));
-					}else{
-						var $ = window.$;
-						downloadImage($('.gm_img_300 img').attr('src')).then(function(result){
-							var title = $('.gm_desc.gm_title h1').text();
-							var description = $('#gm_summary p').text();
-							if(title && description){
-								var result = {
-									title:title,
-									description:description,
-									img:[result],
-									url:url
-								}
-								deffered.resolve(result);
-							}else{
-								deffered.reject('游戏页面未找到或此游戏为内购游戏,无法转载.');
-							}
-						},function(err){
-							deffered.reject('图片存储错误.');
-						});
-						
+			var $ = cheerio.load(html);
+			downloadImage($('.gm_img_300 img').attr('src')).then(function(result){
+				var title = $('.gm_desc.gm_title h1').text();
+				var description = $('#gm_summary p').text();
+				if(title && description){
+					var result = {
+						title:title,
+						description:description,
+						img:[result],
+						url:url
 					}
+					deffered.resolve(result);
+				}else{
+					deffered.reject('游戏页面未找到或此游戏为内购游戏,无法转载.');
 				}
+			},function(err){
+				deffered.reject('图片存储错误.');
 			});
 		});
 		return deffered.promise;
@@ -81,46 +69,36 @@ var support = {
 				return false;
 			}
 			var html = iconv.decode(new Buffer(res.body),'GBK').toString();
-			jsdom.env({
-				html: html,
-				scripts:[jquery],
-				done:function(err,window){
-					if(err){
-						deffered.reject('jquery注入错误.');
-						return false;
-					}
-					var $ = window.$;
-					var imgQueue = [];
-					_.map($('#pics_list img'),function(img){
-						imgQueue.push(downloadImage($(img).attr('src')?$(img).attr('src'):$(img).attr('lz_src')));
-					});
+			var $ = cheerio.load(html);
+			var imgQueue = [];
+			_.map($('#pics_list img'),function(img){
+				imgQueue.push(downloadImage($(img).attr('src')?$(img).attr('src'):$(img).attr('lz_src')));
+			});
 
-					if(imgQueue.length == 0){
-						imgQueue.push(downloadImage($('.p_img img').attr('src')));
-					}
+			if(imgQueue.length == 0){
+				imgQueue.push(downloadImage($('.p_img img').attr('src')));
+			}
 
-					q.all(imgQueue).then(function(results){
-						var description = $('#introduce2').text();
-						if(description){
-							description = description.substr(3);
-						}
-						var title = $('.pag_h1 a').text();
-						if(title && description){
-							var result = {
-								title:title,
-								description:description,
-								img:results,
-								url:url,
-							}
-							deffered.resolve(result);
-						}else{
-							deffered.reject('游戏页面未找到或此游戏为内购游戏,无法转载.');
-						}
-					},function(err){
-						deffered.reject('图片存储错误.');
-						return false;
-					});
+			q.all(imgQueue).then(function(results){
+				var description = $('#introduce2').text();
+				if(description){
+					description = description.substr(3);
 				}
+				var title = $('.pag_h1 a').text();
+				if(title && description){
+					var result = {
+						title:title,
+						description:description,
+						img:results,
+						url:url,
+					}
+					deffered.resolve(result);
+				}else{
+					deffered.reject('游戏页面未找到或此游戏为内购游戏,无法转载.');
+				}
+			},function(err){
+				deffered.reject('图片存储错误.');
+				return false;
 			});
 		});
 		return deffered.promise;
@@ -147,38 +125,29 @@ var support = {
 				deffered.reject(new Error('404'));
 				return false;	
 			}
-			jsdom.env({
-				html:body,
-				scripts:[jquery],
-				done:function(err,window){
-					if(err){
-						deferred.reject(new Error('jquery注入错误.'));
-					}else{
-						var $ = window.$;
-						downloadQuene = [];
-						_.map($('.screenshot_img'),function(dom){
-							downloadQuene.push(downloadImage($(dom).attr('src')));
-						});
-						q.all(downloadQuene).then(function(results){
-							var title = $('.gm_desc.gm_title h1').text();
-							var description = $('#gm_summary p').text();
-							if(title && description){
-								var result = {
-									title:title,
-									description:description,
-									img:results,
-									url:url
-								}
-								deffered.resolve(result);
-							}else{
-								deffered.reject('游戏页面未找到或此游戏为内购游戏,无法转载.');
-							}
-						},function(err){
-							deffered.reject('图片存储错误.');
-						});	
-					}
-				}
+			var html = body;
+			var $ = cheerio.load(html);
+			downloadQuene = [];
+			_.map($('.screenshot_img'),function(dom){
+				downloadQuene.push(downloadImage($(dom).attr('src')));
 			});
+			q.all(downloadQuene).then(function(results){
+				var title = $('.gm_desc.gm_title h1').text();
+				var description = $('#gm_summary p').text();
+				if(title && description){
+					var result = {
+						title:title,
+						description:description,
+						img:results,
+						url:url
+					}
+					deffered.resolve(result);
+				}else{
+					deffered.reject('游戏页面未找到或此游戏为内购游戏,无法转载.');
+				}
+			},function(err){
+				deffered.reject('图片存储错误.');
+			});	
 		});
 		return deffered.promise;
 	},
@@ -206,39 +175,29 @@ var support = {
 				deffered.reject(new Error(404));
 				return false;
 			}
-			jsdom.env({
-				html:body,
-				scripts:[jquery],
-				done:function(err,window){
-					if(err){
-						deferred.reject('jquery注入错误.');
-						return false;
-					}else{
-						var $ = window.$;
-						downloadQuene = [];
-						_.map($('.ui-img-list .pic'),function(dom){
-							downloadQuene.push(downloadImage($(dom).attr('src')));
-						});
-						q.all(downloadQuene).then(function(results){
-							var title = $('#game-info h1 a').text();
-							var description = $('#game-info .game-describe').text();
-							if(title && description){
-								var result = {
-									title:title,
-									description:description,
-									img:results,
-									url:url
-								}
-								deffered.resolve(result);
-							}else{
-								deffered.reject('游戏页面未找到或此游戏为内购游戏,无法转载.');
-							}
-						},function(err){
-							deffered.reject('图片存储错误.');
-						});	
-					}
-				}
+			var html = body;
+			var $ = cheerio.load(html);
+			downloadQuene = [];
+			_.map($('.ui-img-list .pic'),function(dom){
+				downloadQuene.push(downloadImage($(dom).attr('src')));
 			});
+			q.all(downloadQuene).then(function(results){
+				var title = $('#game-info h1 a').text();
+				var description = $('#game-info .game-describe').text();
+				if(title && description){
+					var result = {
+						title:title,
+						description:description,
+						img:results,
+						url:url
+					}
+					deffered.resolve(result);
+				}else{
+					deffered.reject('游戏页面未找到或此游戏为内购游戏,无法转载.');
+				}
+			},function(err){
+				deffered.reject('图片存储错误.');
+			});	
 		});
 
 		return deffered.promise;
@@ -268,35 +227,24 @@ var support = {
 				return false;
 			}
 			var html = iconv.decode(new Buffer(res.body),'GBK').toString();
-			jsdom.env({
-				html:html,
-				scripts:[jquery],
-				done:function(err,window){
-					if(err){
-						deferred.reject('jquery注入错误.');
-						return false;
-					}else{
-						var $ = window.$;
-						downloadImage($('.b_pic img').attr('src')).then(function(results){
-							var title = $('.t2_1 h1').text();
-							var description = $('#flashsay p').text();
-							if(title && description){
-								var result = {
-									title:title,
-									description:description,
-									img:[results],
-									url:url
-								}
-								deffered.resolve(result);
-							}else{
-								deffered.reject('游戏页面未找到或此游戏为内购游戏,无法转载.');
-							}
-						},function(err){
-							deffered.reject('图片存储错误.');
-						});	
+			var $ = cheerio.load(html);
+			downloadImage($('.b_pic img').attr('src')).then(function(results){
+				var title = $('.t2_1 h1').text();
+				var description = $('#flashsay p').text();
+				if(title && description){
+					var result = {
+						title:title,
+						description:description,
+						img:[results],
+						url:url
 					}
+					deffered.resolve(result);
+				}else{
+					deffered.reject('游戏页面未找到或此游戏为内购游戏,无法转载.');
 				}
-			});
+			},function(err){
+				deffered.reject('图片存储错误.');
+			});	
 		});
 
 		return deffered.promise;
@@ -333,39 +281,28 @@ var support = {
 				return false;
 			}
 			var html = iconv.decode(new Buffer(res.body),'utf-8').toString();
-			jsdom.env({
-				html:html,
-				scripts:[jquery],
-				done:function(err,window){
-					if(err){
-						deferred.reject('jquery注入错误.');
-						return false;
-					}else{
-						var $ = window.$;
-						downloadQuene = [];
-						_.map($('.slidewrap img'),function(dom){
-							downloadQuene.push(downloadImage($(dom).attr('src')));
-						});
-						q.all(downloadQuene).then(function(results){
-							var title = $('#get-tit a').text();
-							var description = $('#detail-con').text();
-							if(title && description){
-								var result = {
-									title:title,
-									description:description.trim(),
-									img:results,
-									url:url
-								}
-								deffered.resolve(result);
-							}else{
-								deffered.reject('游戏页面未找到或此游戏为内购游戏,无法转载.');
-							}
-						},function(err){
-							deffered.reject('图片存储错误.');
-						});	
-					}
-				}
+			var $ = cheerio.load(html);
+			downloadQuene = [];
+			_.map($('.slidewrap img'),function(dom){
+				downloadQuene.push(downloadImage($(dom).attr('src')));
 			});
+			q.all(downloadQuene).then(function(results){
+				var title = $('#get-tit a').text();
+				var description = $('#detail-con').text();
+				if(title && description){
+					var result = {
+						title:title,
+						description:description.trim(),
+						img:results,
+						url:url
+					}
+					deffered.resolve(result);
+				}else{
+					deffered.reject('游戏页面未找到或此游戏为内购游戏,无法转载.');
+				}
+			},function(err){
+				deffered.reject('图片存储错误.');
+			});	
 		});
 
 		return deffered.promise;
