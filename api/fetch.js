@@ -538,12 +538,27 @@ function createGame(url,res){
 		var Game = AV.Object.extend('Game');
 		var _game = new Game(result);
 		_game.save().then(function(__game){
+			__game.status = 0;
+			__game.msg = 'ok';
 			res.json(__game);
 		},function(err){
-			res.json(err);
+			if(err.status){
+				res.json(err);
+			}else{
+				err.status = 112;
+				err.msg = '生成游戏失败,请重试';
+			}
+			
 		});
 	},function(err){
-		res.json(err);
+		if(err.status){
+			res.json(err);
+		}else{
+			err.status = 111;
+			err.msg = '创建游戏出错,请重试';
+			res.json(err);
+		}
+		
 	});
 }
 

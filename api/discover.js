@@ -1,11 +1,13 @@
 var AV      = require('../cloud/av.js');
 var router  = require('express').Router();
 var q 		= require('q');
+var _ 		= require('lodash');
 
 router.post('/',function(req,res){
 	duplicateCheck(req.body)
 	.then(validDiscover)
 	.then(hideOldDiscover)
+	.then(getDiscover)
 	.then(function(discover){
 		res.json({
 			status:0,
@@ -13,16 +15,29 @@ router.post('/',function(req,res){
 			discover:discover
 		})	
 	},function(err){
-		res.json(err);
+		if(err.status){
+			res.json(err);
+		}else{
+			err.status = 101;
+			err.msg = '游戏发射失败,请联系检修组';
+			res.json(err);	
+		}
 	})
 });
+
+function getDiscover(id){
+	var Discover = AV.Object.extend('Discover');
+	var query    = new AV.Query(Discover);
+	return query.get(id);
+}
 
 function duplicateCheck(discover){
 	var promise  = new AV.Promise();
 	var Discover = AV.Object.extend('Discover');
 	var query    = new AV.Query(Discover);
 	query.equalTo('userId',discover.userId);
-	query.equalTo('game',discover.game);
+	var game = AV.Object.createWithoutData('Game', discover.game);
+	query.equalTo('game',game);
 	query.find().then(function(result){
 		if(result.length == 0){
 			promise.resolve(discover);
@@ -69,14 +84,14 @@ function hideOldDiscover(discover){
 			_discover.set('isLast',false);
 			_discover.save()
 			.then(function(){
-				promise.resolve(discover);
+				promise.resolve(discover.id);
 			},function(err){
 				err.status = 102;
 				err.msg    = '隐藏重复推荐失败,请重试.';
 				promise.reject(err);
 			});	
 		}else{
-			promise.resolve(discover);
+			promise.resolve(discover.id);
 		}
 		
 	});
@@ -93,13 +108,21 @@ router.get('/list',function(req,res){
 	}
 	query.limit(60);
 	query.find().then(function(result){
+		result.status = 0;
+		result.msg = 'ok';
 		res.json(result);
 	},function(err){
+		err.status = 101;
+		err.msg = '获取发现列表失败';
 		res.json(err);
 	});
 });
 
 router.get('/:id',function(req,res){
+	if(req.params.id.indexOf('-') != -1){
+		getListGame(req.params.id,res);
+		return;
+	}
 	var Discover = AV.Object.extend('Discover');
 	var query    = new AV.Query(Discover);
 	query.equalTo('discoverId',parseInt(req.params.id));
@@ -109,18 +132,24 @@ router.get('/:id',function(req,res){
 		result.game = discover.get('game');
 		AV.Promise.all([
 			getOtherUser(result.game.id,result.userId),
-			getOtherGame(result.game.id,result.userId)
+			getOtherGame(result.game.id,result.userId),
+			getNearGame(result.discoverId)
 		]).then(function(successs){
 			result.otherUser = successs[0];
 			result.otherGame = successs[1];
+			result.nearDiscover = successs[2];
+			result.status = 0;
+			result.msg = 'ok';
 			res.json(result);
-		},function(errs){
-			result.otherUser = errs[0];
-			result.otherGame = errs[1];
-			res.json(result);
+		},function(err){
+			err.status = 102;
+			err.msg = '查询游戏相关信息失败';
+			res.json(err);
 		});
 		
 	},function(err){
+		err.status = 101;
+		err.msg = '查询游戏失败';
 		res.json(err);
 	});
 
@@ -128,30 +157,57 @@ router.get('/:id',function(req,res){
 
 function getOtherUser(gameid,userid){
 	var Discover  = AV.Object.extend('Discover');
-	var game      = AV.Object.extend('Game');
-	var querygame = new AV.Query(game);
+	var Game      = AV.Object.extend('Game');
+	var querygame = new AV.Query(Game);
 	querygame.equalTo("objectId",gameid);
 	var queryuser = new AV.Query(Discover);
 	queryuser.matchesQuery('game',querygame);
 	queryuser.notEqualTo('userId',userid);
 	queryuser.ascending("createdAt");
-
 	return queryuser.find();
 }
 
 function getOtherGame(gameid,userid){
-	var game      = AV.Object.extend('Game');
-	var query     = new AV.Query(game);
+	var Game      = AV.Object.extend('Game');
+	var query     = new AV.Query(Game);
 	query.equalTo("objectId",gameid);
 	var Discover  = AV.Object.extend('Discover');
 	var querygame = new AV.Query(Discover);
 	querygame.doesNotMatchQuery('game',query);
 	querygame.equalTo('userId',userid);
 	querygame.descending("createdAt");
-
 	return querygame.first();
 }
 
+function getNearGame(discoverId){
+	var Discover = AV.Object.extend('Discover');
+	var queryPrev = new AV.Query(Discover);
+	var queryNext = new AV.Query(Discover);
+	queryPrev.select('title','discoverId');
+	queryNext.select('title','discoverId');
+	queryPrev.equalTo('discoverId',parseInt(discoverId)-1);
+	queryNext.equalTo('discoverId',parseInt(discoverId)+1);
+	var mainQuery = AV.Query.or(queryPrev,queryNext);
+	return mainQuery.find();
+}
 
+function getListGame(ids,res){
+	ids = ids.split('-');
+	var Discover = AV.Object.extend('Discover');
+	var query = new AV.Query(Discover);
+	_.map(ids,function(id,key){
+		ids[key] = parseInt(id);
+	});
+	query.containedIn('discoverId',ids);
+	query.find().then(function(result){
+		result.status = 0;
+		result.msg = 'ok';
+		res.json(result);
+	},function(err){
+		err.status = 101;
+		err.msg = '获取游戏列表失败';
+		res.json(err);
+	});
+}
 
 module.exports = router;
