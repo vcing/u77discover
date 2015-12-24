@@ -147,10 +147,9 @@ function getOtherGame(gameid,userid){
 	var querygame = new AV.Query(Discover);
 	querygame.doesNotMatchQuery('game',query);
 	querygame.equalTo('userId',userid);
-	querygame.limit(5);
 	querygame.descending("createdAt");
 
-	return querygame.find();
+	return querygame.first();
 }
 
 

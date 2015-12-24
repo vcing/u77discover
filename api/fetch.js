@@ -27,8 +27,8 @@ var support = {
 			}
 			if(res.statusCode == 404){
 				var err = {
-					status = 101;
-					msg = "未找到游戏资源.";
+					status : 101,
+					msg : "未找到游戏资源."
 				}
 				deffered.reject(err);
 				return false;
@@ -37,8 +37,8 @@ var support = {
 			var $ = cheerio.load(html);
 			if($('.gm_img_300 img').length == 0){
 				var err = {
-					status = 101;
-					msg = "未找到游戏资源.";
+					status : 101,
+					msg : "未找到游戏资源."
 				}
 				deffered.reject(err);
 				return false;
@@ -57,8 +57,8 @@ var support = {
 					deffered.resolve(result);
 				}else{
 					var err = {
-						status = 101;
-						msg = "未找到游戏资源.";
+						status : 101,
+						msg : "未找到游戏资源."
 					}
 					deffered.reject(err);
 					return false;
@@ -92,8 +92,8 @@ var support = {
 			}
 			if(res.statusCode == 404){
 				var err = {
-					status = 101;
-					msg = "未找到游戏资源.";
+					status : 101,
+					msg : "未找到游戏资源."
 				}
 				deffered.reject(err);
 				return false;
@@ -102,8 +102,8 @@ var support = {
 			var $ = cheerio.load(html);
 			if($('#pics_list img').length == 0 && $('.p_img img').length == 0){
 				var err = {
-					status = 101;
-					msg = "未找到游戏资源.";
+					status : 101,
+					msg : "未找到游戏资源."
 				}
 				deffered.reject(err);
 				return false;
@@ -134,8 +134,8 @@ var support = {
 					deffered.resolve(result);
 				}else{
 					var err = {
-						status = 101;
-						msg = "未找到游戏资源.";
+						status : 101,
+						msg : "未找到游戏资源."
 					}
 					deffered.reject(err);
 					return false;
@@ -171,8 +171,8 @@ var support = {
 			}
 			if(res.statusCode == 404){
 				var err = {
-					status = 101;
-					msg = "未找到游戏资源.";
+					status : 101,
+					msg : "未找到游戏资源."
 				}
 				deffered.reject(err);
 				return false;
@@ -181,8 +181,8 @@ var support = {
 			var $ = cheerio.load(html);
 			if($('.screenshot_img').length == 0){
 				var err = {
-					status = 101;
-					msg = "未找到游戏资源.";
+					status : 101,
+					msg : "未找到游戏资源."
 				}
 				deffered.reject(err);
 				return false;
@@ -205,8 +205,8 @@ var support = {
 					deffered.resolve(result);
 				}else{
 					var err = {
-						status = 101;
-						msg = "未找到游戏资源.";
+						status : 101,
+						msg : "未找到游戏资源."
 					}
 					deffered.reject(err);
 					return false;
@@ -244,8 +244,8 @@ var support = {
 			}
 			if(res.statusCode == 404){
 				var err = {
-					status = 101;
-					msg = "未找到游戏资源.";
+					status : 101,
+					msg : "未找到游戏资源."
 				}
 				deffered.reject(err);
 				return false;
@@ -254,8 +254,8 @@ var support = {
 			var $ = cheerio.load(html);
 			if($('.ui-img-list .pic').length == 0){
 				var err = {
-					status = 101;
-					msg = "未找到游戏资源.";
+					status : 101,
+					msg : "未找到游戏资源."
 				}
 				deffered.reject(err);
 				return false;
@@ -278,8 +278,8 @@ var support = {
 					deffered.resolve(result);
 				}else{
 					var err = {
-						status = 101;
-						msg = "未找到游戏资源.";
+						status : 101,
+						msg : "未找到游戏资源."
 					}
 					deffered.reject(err);
 					return false;
@@ -318,8 +318,8 @@ var support = {
 			}
 			if(res.statusCode == 404){
 				var err = {
-					status = 101;
-					msg = "未找到游戏资源.";
+					status : 101,
+					msg : "未找到游戏资源."
 				}
 				deffered.reject(err);
 				return false;
@@ -328,8 +328,8 @@ var support = {
 			var $ = cheerio.load(html);
 			if($('.b_pic img').length == 0){
 				var err = {
-					status = 101;
-					msg = "未找到游戏资源.";
+					status : 101,
+					msg : "未找到游戏资源."
 				}
 				deffered.reject(err);
 				return false;
@@ -348,8 +348,8 @@ var support = {
 					deffered.resolve(result);
 				}else{
 					var err = {
-						status = 101;
-						msg = "未找到游戏资源.";
+						status : 101,
+						msg : "未找到游戏资源."
 					}
 					deffered.reject(err);
 					return false;
@@ -395,8 +395,8 @@ var support = {
 			}
 			if(res.statusCode == 404){
 				var err = {
-					status = 101;
-					msg = "未找到游戏资源.";
+					status : 101,
+					msg : "未找到游戏资源."
 				}
 				deffered.reject(err);
 				return false;
@@ -405,8 +405,8 @@ var support = {
 			var $ = cheerio.load(html);
 			if($('.slidewrap img').length == 0){
 				var err = {
-					status = 101;
-					msg = "未找到游戏资源.";
+					status : 101,
+					msg : "未找到游戏资源."
 				}
 				deffered.reject(err);
 				return false;
@@ -429,8 +429,8 @@ var support = {
 					deffered.resolve(result);
 				}else{
 					var err = {
-						status = 101;
-						msg = "未找到游戏资源.";
+						status : 101,
+						msg : "未找到游戏资源."
 					}
 					deffered.reject(err);
 					return false;
@@ -521,8 +521,8 @@ function fetch(url){
 	if(_fn === undefined){
 		var deffered = q.defer();
 		var err = {
-			status = 101;
-			msg = "未找到游戏资源.";
+			status : 101,
+			msg : "未找到游戏资源."
 		}
 		deffered.reject(err);
 		return deffered.promise;
