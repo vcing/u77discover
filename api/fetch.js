@@ -12,6 +12,7 @@ var moment  = require('moment');
 var support = {
 	'3366.com':function(url){
 		var deffered = q.defer();
+
 		request({
 			url:url,
 			method:"GET",
@@ -19,15 +20,29 @@ var support = {
 			timeout:3000,
 		},function(err,res,body){
 			if(err || !body){
-				deffered.reject(err ? err : new Error('未找到游戏资源.'));
+				err.status = 101;
+				err.msg = "未找到游戏资源.";
+				deffered.reject(err);
 				return false;
 			}
 			if(res.statusCode == 404){
-				deffered.reject(new Error('404'));
-				return false;	
+				var err = {
+					status = 101;
+					msg = "未找到游戏资源.";
+				}
+				deffered.reject(err);
+				return false;
 			}
 			var html = iconv.decode(new Buffer(res.body),'GBK').toString();
 			var $ = cheerio.load(html);
+			if($('.gm_img_300 img').length == 0){
+				var err = {
+					status = 101;
+					msg = "未找到游戏资源.";
+				}
+				deffered.reject(err);
+				return false;
+			}
 			downloadImage($('.gm_img_300 img').attr('src')).then(function(result){
 				var title = $('.gm_desc.gm_title h1').text();
 				var description = $('#gm_summary p').text();
@@ -36,14 +51,23 @@ var support = {
 						title:title,
 						description:description,
 						img:[result],
-						url:url
+						url:url,
+						status:0
 					}
 					deffered.resolve(result);
 				}else{
-					deffered.reject('游戏页面未找到或此游戏为内购游戏,无法转载.');
+					var err = {
+						status = 101;
+						msg = "未找到游戏资源.";
+					}
+					deffered.reject(err);
+					return false;
 				}
 			},function(err){
-				deffered.reject('图片存储错误.');
+				err.status = 102;
+				err.msg = "图片存储错误.";
+				deffered.reject(err);
+				return false;
 			});
 		});
 		return deffered.promise;
@@ -61,15 +85,29 @@ var support = {
 			timeout:3000,
 		},function(err,res,body){
 			if(err || !body){
-				deffered.reject(err ? err : new Error("未找到游戏资源."));
+				err.status = 101;
+				err.msg = "未找到游戏资源.";
+				deffered.reject(err);
 				return false;
 			}
 			if(res.statusCode == 404){
-				deffered.reject(new Error(404));
+				var err = {
+					status = 101;
+					msg = "未找到游戏资源.";
+				}
+				deffered.reject(err);
 				return false;
 			}
 			var html = iconv.decode(new Buffer(res.body),'GBK').toString();
 			var $ = cheerio.load(html);
+			if($('#pics_list img').length == 0 && $('.p_img img').length == 0){
+				var err = {
+					status = 101;
+					msg = "未找到游戏资源.";
+				}
+				deffered.reject(err);
+				return false;
+			}
 			var imgQueue = [];
 			_.map($('#pics_list img'),function(img){
 				imgQueue.push(downloadImage($(img).attr('src')?$(img).attr('src'):$(img).attr('lz_src')));
@@ -91,13 +129,21 @@ var support = {
 						description:description,
 						img:results,
 						url:url,
+						status:0
 					}
 					deffered.resolve(result);
 				}else{
-					deffered.reject('游戏页面未找到或此游戏为内购游戏,无法转载.');
+					var err = {
+						status = 101;
+						msg = "未找到游戏资源.";
+					}
+					deffered.reject(err);
+					return false;
 				}
 			},function(err){
-				deffered.reject('图片存储错误.');
+				err.status = 102;
+				err.msg = "图片存储错误.";
+				deffered.reject(err);
 				return false;
 			});
 		});
@@ -118,15 +164,29 @@ var support = {
 			timeout:15000
 		},function(err,res,body){
 			if(err || !body){
-				deffered.reject(err ? err : new Error('未找到游戏资源.'));
+				err.status = 101;
+				err.msg = "未找到游戏资源.";
+				deffered.reject(err);
 				return false;
 			}
 			if(res.statusCode == 404){
-				deffered.reject(new Error('404'));
-				return false;	
+				var err = {
+					status = 101;
+					msg = "未找到游戏资源.";
+				}
+				deffered.reject(err);
+				return false;
 			}
 			var html = body;
 			var $ = cheerio.load(html);
+			if($('.screenshot_img').length == 0){
+				var err = {
+					status = 101;
+					msg = "未找到游戏资源.";
+				}
+				deffered.reject(err);
+				return false;
+			}
 			downloadQuene = [];
 			_.map($('.screenshot_img'),function(dom){
 				downloadQuene.push(downloadImage($(dom).attr('src')));
@@ -139,14 +199,23 @@ var support = {
 						title:title,
 						description:description,
 						img:results,
-						url:url
+						url:url,
+						status:0
 					}
 					deffered.resolve(result);
 				}else{
-					deffered.reject('游戏页面未找到或此游戏为内购游戏,无法转载.');
+					var err = {
+						status = 101;
+						msg = "未找到游戏资源.";
+					}
+					deffered.reject(err);
+					return false;
 				}
 			},function(err){
-				deffered.reject('图片存储错误.');
+				err.status = 102;
+				err.msg = "图片存储错误.";
+				deffered.reject(err);
+				return false;
 			});	
 		});
 		return deffered.promise;
@@ -168,15 +237,29 @@ var support = {
 			timeout:3000,
 		},function(err,res,body){
 			if(err || !body){
-				deffered.reject(err ? err : new Error('未找到游戏资源.'));
+				err.status = 101;
+				err.msg = "未找到游戏资源.";
+				deffered.reject(err);
 				return false;
 			}
 			if(res.statusCode == 404){
-				deffered.reject(new Error(404));
+				var err = {
+					status = 101;
+					msg = "未找到游戏资源.";
+				}
+				deffered.reject(err);
 				return false;
 			}
 			var html = body;
 			var $ = cheerio.load(html);
+			if($('.ui-img-list .pic').length == 0){
+				var err = {
+					status = 101;
+					msg = "未找到游戏资源.";
+				}
+				deffered.reject(err);
+				return false;
+			}
 			downloadQuene = [];
 			_.map($('.ui-img-list .pic'),function(dom){
 				downloadQuene.push(downloadImage($(dom).attr('src')));
@@ -189,14 +272,23 @@ var support = {
 						title:title,
 						description:description,
 						img:results,
-						url:url
+						url:url,
+						status:0
 					}
 					deffered.resolve(result);
 				}else{
-					deffered.reject('游戏页面未找到或此游戏为内购游戏,无法转载.');
+					var err = {
+						status = 101;
+						msg = "未找到游戏资源.";
+					}
+					deffered.reject(err);
+					return false;
 				}
 			},function(err){
-				deffered.reject('图片存储错误.');
+				err.status = 102;
+				err.msg = "图片存储错误.";
+				deffered.reject(err);
+				return false;
 			});	
 		});
 
@@ -219,15 +311,29 @@ var support = {
 			timeout:3000,
 		},function(err,res,body){
 			if(err || !body){
-				deffered.reject(err ? err : new Error('未找到游戏资源.'));
+				err.status = 101;
+				err.msg = "未找到游戏资源.";
+				deffered.reject(err);
 				return false;
 			}
 			if(res.statusCode == 404){
-				deffered.reject(new Error(404));
+				var err = {
+					status = 101;
+					msg = "未找到游戏资源.";
+				}
+				deffered.reject(err);
 				return false;
 			}
 			var html = iconv.decode(new Buffer(res.body),'GBK').toString();
 			var $ = cheerio.load(html);
+			if($('.b_pic img').length == 0){
+				var err = {
+					status = 101;
+					msg = "未找到游戏资源.";
+				}
+				deffered.reject(err);
+				return false;
+			}
 			downloadImage($('.b_pic img').attr('src')).then(function(results){
 				var title = $('.t2_1 h1').text();
 				var description = $('#flashsay p').text();
@@ -236,14 +342,23 @@ var support = {
 						title:title,
 						description:description,
 						img:[results],
-						url:url
+						url:url,
+						status:0
 					}
 					deffered.resolve(result);
 				}else{
-					deffered.reject('游戏页面未找到或此游戏为内购游戏,无法转载.');
+					var err = {
+						status = 101;
+						msg = "未找到游戏资源.";
+					}
+					deffered.reject(err);
+					return false;
 				}
 			},function(err){
-				deffered.reject('图片存储错误.');
+				err.status = 102;
+				err.msg = "图片存储错误.";
+				deffered.reject(err);
+				return false;
 			});	
 		});
 
@@ -273,15 +388,29 @@ var support = {
 			timeout:3000,
 		},function(err,res,body){
 			if(err || !body){
-				deffered.reject(err ? err : new Error('未找到游戏资源.'));
+				err.status = 101;
+				err.msg = "未找到游戏资源.";
+				deffered.reject(err);
 				return false;
 			}
 			if(res.statusCode == 404){
-				deffered.reject(new Error(404));
+				var err = {
+					status = 101;
+					msg = "未找到游戏资源.";
+				}
+				deffered.reject(err);
 				return false;
 			}
 			var html = iconv.decode(new Buffer(res.body),'utf-8').toString();
 			var $ = cheerio.load(html);
+			if($('.slidewrap img').length == 0){
+				var err = {
+					status = 101;
+					msg = "未找到游戏资源.";
+				}
+				deffered.reject(err);
+				return false;
+			}
 			downloadQuene = [];
 			_.map($('.slidewrap img'),function(dom){
 				downloadQuene.push(downloadImage($(dom).attr('src')));
@@ -294,14 +423,23 @@ var support = {
 						title:title,
 						description:description.trim(),
 						img:results,
-						url:url
+						url:url,
+						status:0
 					}
 					deffered.resolve(result);
 				}else{
-					deffered.reject('游戏页面未找到或此游戏为内购游戏,无法转载.');
+					var err = {
+						status = 101;
+						msg = "未找到游戏资源.";
+					}
+					deffered.reject(err);
+					return false;
 				}
 			},function(err){
-				deffered.reject('图片存储错误.');
+				err.status = 102;
+				err.msg = "图片存储错误.";
+				deffered.reject(err);
+				return false;
 			});	
 		});
 
@@ -382,7 +520,11 @@ function fetch(url){
 	});
 	if(_fn === undefined){
 		var deffered = q.defer();
-		deffered.reject(new Error('未找到游戏资源.'));
+		var err = {
+			status = 101;
+			msg = "未找到游戏资源.";
+		}
+		deffered.reject(err);
 		return deffered.promise;
 	}
 	return _fn(url);
