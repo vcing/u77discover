@@ -445,6 +445,47 @@ var support = {
 
 		return deffered.promise;
 	},
+	'u77.com':function(url){
+		var deffered = q.defer();
+		var items = url.split('/');
+		var gameurl = '/api/'+items[items.length - 2]+'?id='+items[items.length - 1];
+		request({
+			url:gameurl,
+			encoding:null,
+			method:'get',
+			timeout:3000,
+		},function(err,res,body){
+			if(err || !body){
+				err.status = 101;
+				err.msg = "未找到游戏资源.";
+				deffered.reject(err);
+				return false;
+			}
+			if(res.statusCode == 404){
+				var err = {
+					status : 101,
+					msg : "未找到游戏资源."
+				}
+				deffered.reject(err);
+				return false;
+			}
+
+			data = JSON.parse(body);
+
+			var game = data.gameInfo;
+
+			var result = {
+				title:game.title,
+				description:game.content.trim(),
+				img:[{url:game.image}],
+				url:url,
+				status:0
+			}
+			deffered.resolve(result);
+		});
+
+		return deffered.promise;
+	}
 }
 
 function downloadImage(url){
@@ -547,6 +588,7 @@ function createGame(url,res){
 			}else{
 				err.status = 112;
 				err.msg = '生成游戏失败,请重试';
+				res.json(err);
 			}
 			
 		});
