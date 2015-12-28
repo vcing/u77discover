@@ -103,10 +103,10 @@ router.get('/list',function(req,res){
 	var query    = new AV.Query(Discover);
 	query.descending('createdAt');
 	query.equalTo('isLast',true);
-	if(req.params.page){
-		query.skip((req.params.page-1) * 20);
+	if(req.query.page){
+		query.skip((parseInt(req.query.page)-1) * 20);
 	}
-	query.limit(60);
+	query.limit(20);
 	query.find().then(function(result){
 		result.status = 0;
 		result.msg = 'ok';

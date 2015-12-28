@@ -448,7 +448,7 @@ var support = {
 	'u77.com':function(url){
 		var deffered = q.defer();
 		var items = url.split('/');
-		var gameurl = '/api/'+items[items.length - 2]+'?id='+items[items.length - 1];
+		var gameurl = 'http://www.u77.com/api/'+items[items.length - 2]+'?id='+items[items.length - 1];
 		request({
 			url:gameurl,
 			encoding:null,
@@ -482,6 +482,78 @@ var support = {
 				status:0
 			}
 			deffered.resolve(result);
+		});
+
+		return deffered.promise;
+	},
+	'steampowered.com':function(url){
+		var deffered = q.defer();
+
+		request({
+			url:url,
+			encoding:null,
+			method:'get',
+			timeout:3000,
+		},function(err,res,body){
+			if(err || !body){
+				err.status = 101;
+				err.msg = "未找到游戏资源.";
+				deffered.reject(err);
+				return false;
+			}
+			if(res.statusCode == 404){
+				var err = {
+					status : 101,
+					msg : "未找到游戏资源."
+				}
+				deffered.reject(err);
+				return false;
+			}
+			var $ = cheerio.load(body);
+			if($('#agecheck_form').length != 0){
+				var err = {
+					status : 103,
+					msg : "此游戏有年龄限制."
+				}
+				deffered.reject(err);
+				return false;
+			}
+
+			if($('.game_header_image_full').length == 0){
+				var err = {
+					status : 101,
+					msg : "未找到游戏资源."
+				}
+				deffered.reject(err);
+				return false;
+			}
+
+			downloadImage($('.game_header_image_full').attr('src')).then(function(results){
+				var title = $('.apphub_AppName').text();
+				var description = $('#game_area_description').text();
+				if(title && description){
+					var result = {
+						title:title,
+						description:description.trim(),
+						img:[results],
+						url:url,
+						status:0
+					}
+					deffered.resolve(result);
+				}else{
+					var err = {
+						status : 101,
+						msg : "未找到游戏资源."
+					}
+					deffered.reject(err);
+					return false;
+				}
+			},function(err){
+				err.status = 102;
+				err.msg = "图片存储错误.";
+				deffered.reject(err);
+				return false;
+			});	
 		});
 
 		return deffered.promise;
