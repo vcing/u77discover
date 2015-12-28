@@ -40,6 +40,8 @@ function duplicateCheck(discover){
 	query.equalTo('game',game);
 	query.find().then(function(result){
 		if(result.length == 0){
+			game.increment('times');
+			game.save();
 			promise.resolve(discover);
 		}else{
 			promise.reject({
@@ -107,6 +109,23 @@ router.get('/list',function(req,res){
 		query.skip((req.query.page-1) * 20);
 	}
 	query.limit(20);
+	query.find().then(function(result){
+		result.status = 0;
+		result.msg = 'ok';
+		res.json(result);
+	},function(err){
+		err.status = 101;
+		err.msg = '获取发现列表失败';
+		res.json(err);
+	});
+});
+
+router.get('/index',function(req,res){
+	var Discover = AV.Object.extend('Discover');
+	var query    = new AV.Query(Discover);
+	query.descending('createdAt');
+	query.equalTo('isLast',true);
+	query.limit(5);
 	query.find().then(function(result){
 		result.status = 0;
 		result.msg = 'ok';

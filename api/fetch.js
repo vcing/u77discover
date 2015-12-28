@@ -576,6 +576,7 @@ function createGame(url,res){
 		result.originUrl = result.url;
 		delete result.url;
 		result.u77Id = 0;
+		result.times = 0;
 		var Game = AV.Object.extend('Game');
 		var _game = new Game(result);
 		_game.save().then(function(__game){
