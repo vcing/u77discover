@@ -108,10 +108,12 @@ router.get('/list',function(req,res){
 	if(req.query.page){
 		query.skip((req.query.page-1) * 20);
 	}
+	query.include('game');
 	query.limit(20);
 	query.find().then(function(result){
-		result.status = 0;
-		result.msg = 'ok';
+		_.map(result,function(discover){
+			discover.set('game',discover.get('game').toJSON());
+		});
 		res.json(result);
 	},function(err){
 		err.status = 101;

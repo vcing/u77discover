@@ -4,7 +4,6 @@ var q       = require('q');
 var cheerio = require('cheerio');
 var request = require('request');
 var iconv   = require('iconv-lite');
-var jquery  = './jquery.min.js';
 var err 	= require('../cloud/error.js');
 var _       = require('lodash');
 var moment  = require('moment');
@@ -479,7 +478,8 @@ var support = {
 				description:game.content.trim(),
 				img:[{url:game.image}],
 				url:url,
-				status:0
+				status:0,
+				u77Id:parseInt(items[items.length - 1])
 			}
 			deffered.resolve(result);
 		});
@@ -646,8 +646,9 @@ function fetch(url){
 function createGame(url,res){
 	fetch(url).then(function(result){
 		result.originUrl = result.url;
+
 		delete result.url;
-		result.u77Id = 0;
+		result.u77Id = result.u77Id || 0;
 		result.times = 0;
 		var Game = AV.Object.extend('Game');
 		var _game = new Game(result);
@@ -697,5 +698,7 @@ router.get('/:url',function(req,res){
 router.post('/:url',function(req,res){
 	var url = req.params.url;
 });
+
+
 
 module.exports = router;
