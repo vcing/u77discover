@@ -10,6 +10,10 @@ var moment       = require('moment');
 var usFetchPath  = require('../config/config.js').usFetch;
 var androidFetch = require('./androidFetch.js');
 
+/**
+ * 支持的网址和对应的方法
+ * @type {String(网址)：function(对应获取资源的方法)}
+ */
 var support = {
 	'3366.com':function(url){
 		var deffered = q.defer();
@@ -538,6 +542,11 @@ var support = {
 	}
 }
 
+/**
+ * 下载发现中的图片，并转存在U盘云中
+ * @param  {String} url [传入要储存图片的地址]
+ * @return {promise}     [成功：储存的地址||失败：错误信息]
+ */
 function downloadImage(url){
 	// 去掉图片参数
 	var remove = ['!','#','?','&'];
@@ -548,7 +557,9 @@ function downloadImage(url){
 	});
 	var deffered = q.defer();
 	var auth = new Buffer('u77fetch:u77fetch');
+	//转存地址的文件名为（年+月+16位随机码）
 	var saveUrl = "http://v0.api.upyun.com/u77img/discover-fetch/"+moment().year()+"/"+moment().month()+"/"+randomString(16)+'.'+getExtension(url);
+	//获取图片并储存
 	request.get({
 		url:url,
 		method:'GET',
@@ -568,6 +579,7 @@ function downloadImage(url){
 		if(err || body || res.headers['x-error-code']){
 			deffered.reject(err?err:body || res.headers['x-error-code']);
 		}else{
+			//变更U盘云为U77内地址
 			deffered.resolve({url:saveUrl.replace('v0.api.upyun.com/u77img','img.u77.com')});
 		}
 	}));
@@ -575,6 +587,11 @@ function downloadImage(url){
 	return deffered.promise;
 }
 
+/**
+ * 获取文件后缀名
+ * @param  {String} url [传入文件地址]
+ * @return {String}     [传入文件的后缀名]
+ */
 function getExtension(url){
 	var _bad = ['!','#','?'];
 	var _arr = url.split('.');
@@ -591,6 +608,11 @@ function getExtension(url){
 	}
 }
 
+/**
+ * 生成随机码
+ * @param  {int} len [随机码长度]
+ * @return {String}     [生成的随机码]
+ */
 function randomString(len) {
 　　len = len || 32;
 　　var $chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678';    /****默认去掉了容易混淆的字符oOLl,9gq,Vv,Uu,I1****/
@@ -602,6 +624,11 @@ function randomString(len) {
 　　return pwd;
 }
 
+/**
+ * 获取对应的方法
+ * @param  {String} url [要获取资源的地址]
+ * @return {promise}     [成功：获取的资源||失败：错误信息]
+ */
 function fetch(url){
 	var _fn;
 	_.mapKeys(support,function(fn,key){
@@ -621,6 +648,12 @@ function fetch(url){
 	return _fn(url);
 }
 
+/**
+ * 存入游戏信息
+ * @param  {String} url [游戏地址]
+ * @param  {String} res [响应]
+ * @return 	{promise}	[成功：储存的发现对象||失败：错误信息]
+ */
 function createGame(url,res){
 	fetch(url).then(function(result){
 		result.originUrl = result.url;
@@ -655,6 +688,11 @@ function createGame(url,res){
 	});
 }
 
+
+/**
+ * [路由入口]
+ * 查询游戏库，如果没有则创建新游戏
+ */
 router.get('/:url',function(req,res){
 	var url = req.params.url;
 	// query game
@@ -675,14 +713,5 @@ router.get('/:url',function(req,res){
 router.post('/:url',function(req,res){
 	var url = req.params.url;
 });
-
-
-
-
-
-
-
-
-
 
 module.exports = router;
