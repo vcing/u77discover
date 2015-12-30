@@ -28,8 +28,10 @@ function createMoblieGame(url){
 			jar:j
 		},function(err,res,body){
 			if(err || !body){
-				err.status = 101;
-				err.msg = "未找到游戏资源.";
+				var err = {
+					status : 101,
+					msg : "未找到游戏资源."
+				}
 				deffered.reject(err);
 				return false;
 			}
@@ -62,11 +64,13 @@ function createMoblieGame(url){
 				method:'post',
 				form:search,
 				jar:j
-			},function(_err,_res,_body){
-				if(_err || !_body){
-					_err.status = 101;
-					_err.msg = "未找到游戏资源.";
-					deffered.reject(_err);
+			},function(err,_res,_body){
+				if(err || !_body){
+					var err = {
+						status : 101,
+						msg : "未找到游戏资源."
+					}
+					deffered.reject(err);
 					return false;
 				}
 				if(res.statusCode == 404){
@@ -89,7 +93,6 @@ function createMoblieGame(url){
 				var imgQueue = [];
 				_.map($('.form-group .ex-screenshot-thumb-carousel img'),function(img){
 					imgQueue.push(downloadImage($(img).attr('src')));
-					// imgQueue.push($(img).attr('src'))
 				});
 				
 				q.all(imgQueue).then(function(results){
@@ -118,8 +121,6 @@ function createMoblieGame(url){
 					deffered.reject(err);
 					return false;
 				});
-
-				
 			});
 		});
 		return deffered.promise;
@@ -141,9 +142,30 @@ function getLoginCookies(){
 		method:'get',
 		jar:j
 	},function(err,_res,body){
+		if(err || !body){
+			var err = {
+				status : 103,
+				msg : "游戏资源获取失败，请联系管理员."
+			}
+			deffered.reject(err);
+			return false;
+		}
+		if(_res.statusCode == 404){
+			var err = {
+				status : 103,
+				msg : "游戏资源获取失败，请联系管理员."
+			}
+			deffered.reject(err);
+		}
 		var $ = cheerio.load(body);
+		if($('.form-signin input[name=requestHash]').length == 0 ){
+			var err = {
+				status : 103,
+				msg : "游戏资源获取失败，请联系管理员."
+			}
+			deffered.reject(err);
+		}
 		var requestHash = $('.form-signin input[name=requestHash]').attr('value');
-
 		var data = {
 			'postSubmit':1,
 			'requestHash':requestHash,
@@ -155,13 +177,25 @@ function getLoginCookies(){
 			'password':'adsf4679',
 			'remember':'1'
 		}
-
 		request({
 			url:'http://www.coolapk.com/do?c=account&m=login&ajaxRequest=1&'+moment().valueOf(),
 			method:'post',
 			form:data,
 			jar:j
 		},function(err,__res,_body){
+			if(err){
+				err.status = 103;
+				err.msg = "游戏资源获取失败，请联系管理员.";
+				deffered.reject(err);
+				return false;
+			}
+			if(__res.statusCode == 404){
+				var err = {
+					status : 103,
+					msg : "游戏资源获取失败，请联系管理员."
+				}
+				deffered.reject(err);
+			}
 			deffered.resolve(j);
 		});
 	});
