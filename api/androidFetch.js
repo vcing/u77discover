@@ -7,6 +7,11 @@ var err 	= require('../cloud/error.js');
 var _       = require('lodash');
 var moment  = require('moment');
 
+/**
+ * 执行获取手游入口
+ * @param  {String} url [获取的地址]
+ * @return {promise}     [成功：获取到的资源||失败：错误信息]
+ */
 function fetch(url){
 	var deffered = q.defer();
 	getLoginCookies()
@@ -19,6 +24,11 @@ function fetch(url){
 	return deffered.promise;
 }
 
+/**
+ * 获取新的手游
+ * @param  {String} url [获取的地址]
+ * @return {promise}     [成功：获取到的资源||失败：错误信息]
+ */
 function createMoblieGame(url){
 	return function(j){
 		var deffered = q.defer();
@@ -127,6 +137,10 @@ function createMoblieGame(url){
 	}
 }
 
+/**
+ * 登陆酷安网，并储存cookie
+ * @return {promise}     [成功：获取到的cookie||失败：错误信息]
+ */
 function getLoginCookies(){
 	var j;
 	if(global.j){
@@ -202,6 +216,11 @@ function getLoginCookies(){
 	return deffered.promise;
 }
 
+/**
+ * 下载发现中的图片，并转存在U盘云中
+ * @param  {String} url [传入要储存图片的地址]
+ * @return {promise}     [成功：储存的地址||失败：错误信息]
+ */
 function downloadImage(url){
 	// 去掉图片参数
 	var remove = ['!','#','?','&'];
@@ -239,6 +258,11 @@ function downloadImage(url){
 	return deffered.promise;
 }
 
+/**
+ * 生成随机码
+ * @param  {int} len [随机码长度]
+ * @return {String}     [生成的随机码]
+ */
 function randomString(len) {
 　　len = len || 32;
 　　var $chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678';    /****默认去掉了容易混淆的字符oOLl,9gq,Vv,Uu,I1****/
@@ -250,6 +274,11 @@ function randomString(len) {
 　　return pwd;
 }
 
+/**
+ * 获取文件后缀名
+ * @param  {String} url [传入文件地址]
+ * @return {String}     [传入文件的后缀名]
+ */
 function getExtension(url){
 	var _bad = ['!','#','?'];
 	var _arr = url.split('.');

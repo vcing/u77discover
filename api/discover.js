@@ -3,6 +3,15 @@ var router  = require('express').Router();
 var q 		= require('q');
 var _ 		= require('lodash');
 
+/**
+ * [发现提交]
+ * 1.检查相同ID是否重复提交
+ * 2.检查发现数据是否完全，并储存
+ * 3.隐藏之前相同的发现
+ * 4.重新获取此发现（discoverId未自增，开始存入时不会获取到，现在必须重新获取）
+ * 5.执行回调
+ * @return {[type]}                                                                                                                                                                                             [description]
+ */
 router.post('/',function(req,res){
 	duplicateCheck(req.body)
 	.then(validDiscover)
@@ -25,12 +34,22 @@ router.post('/',function(req,res){
 	})
 });
 
+/**
+ * 根据ID获取发现
+ * @param  {String} id [大仙主键Id]
+ * @return {promise}    [成功：获取的discover对象]
+ */
 function getDiscover(id){
 	var Discover = AV.Object.extend('Discover');
 	var query    = new AV.Query(Discover);
 	return query.get(id);
 }
 
+/**
+ * 检查相同ID是都重复推荐
+ * @param  {Discover} discover [传入的discover对象]
+ * @return {promise}          [成功：discover对象||失败：错误信息]
+ */
 function duplicateCheck(discover){
 	var promise  = new AV.Promise();
 	var Discover = AV.Object.extend('Discover');
@@ -57,6 +76,11 @@ function duplicateCheck(discover){
 	return promise;
 }
 
+/**
+ * 检查discover参数是否完全
+ * @param  {Discover} discover [传入discover对象]
+ * @return {promise}          [成功：储存对象并传回||失败：错误信息]
+ */
 function validDiscover(discover){
 	var result         = {};
 	result.oneWord     = discover.oneWord;
@@ -73,6 +97,11 @@ function validDiscover(discover){
 	return _discover.save();
 }
 
+/**
+ * 检查discover参数是否完全
+ * @param  {Discover} discover [传入discover对象]
+ * @return {promise}          [成功：传回discover对象主键Id||失败：错误信息]
+ */
 function hideOldDiscover(discover){
 	var promise = new AV.Promise();
 	var Discover  = AV.Object.extend('Discover');
@@ -100,6 +129,9 @@ function hideOldDiscover(discover){
 	return promise;
 }
 
+/**
+ * 发现列表入口
+ */
 router.get('/list',function(req,res){
 	var Discover = AV.Object.extend('Discover');
 	var query    = new AV.Query(Discover);
@@ -122,6 +154,9 @@ router.get('/list',function(req,res){
 	});
 });
 
+/**
+ * 首页推荐发现列表入口 
+ */
 router.get('/index',function(req,res){
 	var Discover = AV.Object.extend('Discover');
 	var query    = new AV.Query(Discover);
@@ -139,6 +174,9 @@ router.get('/index',function(req,res){
 	});
 });
 
+/**
+ * 发现详情页入口
+ */
 router.get('/:id',function(req,res){
 	if(req.params.id.indexOf('-') != -1){
 		getListGame(req.params.id,res);
@@ -176,6 +214,12 @@ router.get('/:id',function(req,res){
 
 });
 
+/**
+ * 获取其他也推荐过此发现的用户
+ * @param  {String} gameid [discover对象的discoverId]
+ * @param  {String} userid [当前推荐人得userId]
+ * @return {promise}        [成功：discover对象数组||失败：错误信息]
+ */
 function getOtherUser(gameid,userid){
 	var Discover  = AV.Object.extend('Discover');
 	var Game      = AV.Object.extend('Game');
@@ -188,6 +232,12 @@ function getOtherUser(gameid,userid){
 	return queryuser.find();
 }
 
+/**
+ * 获取当前用户推荐过的其他发现
+ * @param  {String} gameid [discover对象的discoverId]
+ * @param  {String} userid [当前推荐人得userId]
+ * @return {promise}        [成功：discover对象||失败：错误信息]
+ */
 function getOtherGame(gameid,userid){
 	var Game      = AV.Object.extend('Game');
 	var query     = new AV.Query(Game);
@@ -200,6 +250,11 @@ function getOtherGame(gameid,userid){
 	return querygame.first();
 }
 
+/**
+ * 获取此发现的相邻的发现（前一个，后一个）
+ * @param  {String} discoverId [discover对象的discoverId]
+ * @return {promise}        [成功：discover对象数组||失败：错误信息]
+ */
 function getNearGame(discoverId){
 	var Discover = AV.Object.extend('Discover');
 	var queryPrev = new AV.Query(Discover);
@@ -212,6 +267,12 @@ function getNearGame(discoverId){
 	return mainQuery.find();
 }
 
+/**
+ * 获取多个发现
+ * @param  {String} ids [多个用‘-’相连的discoverId的字符串]
+ * @param  {Object} res [响应]
+ * @return {promise}     [成功：返回多个发现对象||失败：错误信息]
+ */
 function getListGame(ids,res){
 	ids = ids.split('-');
 	var Discover = AV.Object.extend('Discover');
