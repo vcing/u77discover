@@ -1,11 +1,13 @@
-var AV      = require('../cloud/av.js');
-var router  = require('express').Router();
-var q       = require('q');
-var cheerio = require('cheerio');
-var request = require('request');
-var err 	= require('../cloud/error.js');
-var _       = require('lodash');
-var moment  = require('moment');
+var AV           = require('../cloud/av.js');
+var router       = require('express').Router();
+var q            = require('q');
+var cheerio      = require('cheerio');
+var request      = require('request');
+var err          = require('../cloud/error.js');
+var _            = require('lodash');
+var moment       = require('moment');
+var coolUserId   = require('../config/config.js').coolUserId;
+var coolPassWord = require('../config/config.js').coolPassWord;
 
 /**
  * 执行获取手游入口
@@ -187,9 +189,9 @@ function getLoginCookies(){
 			'openId_type':'',
 			'openId_auth':'',
 			'forward':'http://www.coolapk.com/',
-			'login':'dfgjyicc@163.com',
-			'password':'adsf4679',
-			'remember':'1'
+			'login':coolUserId,
+			'password':coolPassWord,
+			'remember':1
 		}
 		request({
 			url:'http://www.coolapk.com/do?c=account&m=login&ajaxRequest=1&'+moment().valueOf(),

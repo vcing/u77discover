@@ -155,21 +155,10 @@ var support = {
 		return deffered.promise;
 	},
 	'kongregate.com':function(url){
-		var deffered = q.defer();
-		request({
-			url:usFetchPath+'api/fetch/'+encodeURIComponent(url),
-			method:'get'
-		},function(err,res,body){
-			if(err || !body){
-				err.status = 101;
-				err.msg = "未找到游戏资源.";
-				deffered.reject(err);
-				return false;
-			}
-			var result = JSON.parse(body);
-			deffered.resolve(result);
-		});
-		return deffered.promise;
+		return fetchFromUSA(url);
+	},
+	'a10.com':function(url){
+		return fetchFromUSA(url);
 	},
 	'7k7k.com':function(url){
 		var deffered = q.defer();
@@ -686,6 +675,24 @@ function createGame(url,res){
 		}
 		
 	});
+}
+
+function fetchFromUSA(url){
+	var deffered = q.defer();
+	request({
+		url:usFetchPath+'api/fetch/'+encodeURIComponent(url),
+		method:'get'
+	},function(err,res,body){
+		if(err || !body){
+			err.status = 101;
+			err.msg = "未找到游戏资源.";
+			deffered.reject(err);
+			return false;
+		}
+		var result = JSON.parse(body);
+		deffered.resolve(result);
+	});
+	return deffered.promise;
 }
 
 
