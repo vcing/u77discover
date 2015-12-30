@@ -7,6 +7,7 @@ var iconv   = require('iconv-lite');
 var err 	= require('../cloud/error.js');
 var _       = require('lodash');
 var moment  = require('moment');
+var androidFetch = require('./androidFetch.js');
 
 var support = {
 	'3366.com':function(url){
@@ -557,6 +558,36 @@ var support = {
 		});
 
 		return deffered.promise;
+	},
+	'wandoujia.com':function(url){
+		return androidFetch(url);
+	},
+	'android.myapp.com':function(url){
+		return androidFetch(url);
+	},
+	'play.google.com':function(url){
+		return androidFetch(url);
+	},
+	'shouji.baidu.com':function(url){
+		return androidFetch(url);
+	},
+	'zhushou.360.cn':function(url){
+		return androidFetch(url);
+	},
+	'app.mi.com':function(url){
+		return androidFetch(url);
+	},
+	'm.163.com/android':function(url){
+		return androidFetch(url);
+	},
+	'android.d.cn':function(url){
+		return androidFetch(url);
+	},
+	'shouji.com.cn':function(url){
+		return androidFetch(url);
+	},
+	'appchina.com':function(url){
+		return androidFetch(url);
 	}
 }
 
@@ -645,6 +676,7 @@ function fetch(url){
 
 function createGame(url,res){
 	fetch(url).then(function(result){
+		console.log(result);
 		result.originUrl = result.url;
 
 		delete result.url;
@@ -698,6 +730,13 @@ router.get('/:url',function(req,res){
 router.post('/:url',function(req,res){
 	var url = req.params.url;
 });
+
+
+
+
+
+
+
 
 
 
