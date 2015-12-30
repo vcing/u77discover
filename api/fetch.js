@@ -1,12 +1,13 @@
-var AV      = require('../cloud/av.js');
-var router  = require('express').Router();
-var q       = require('q');
-var cheerio = require('cheerio');
-var request = require('request');
-var iconv   = require('iconv-lite');
-var err 	= require('../cloud/error.js');
-var _       = require('lodash');
-var moment  = require('moment');
+var AV           = require('../cloud/av.js');
+var router       = require('express').Router();
+var q            = require('q');
+var cheerio      = require('cheerio');
+var request      = require('request');
+var iconv        = require('iconv-lite');
+var err          = require('../cloud/error.js');
+var _            = require('lodash');
+var moment       = require('moment');
+var usFetchPath  = require('../config/config.js').usFetch;
 var androidFetch = require('./androidFetch.js');
 
 var support = {
@@ -151,17 +152,9 @@ var support = {
 	},
 	'kongregate.com':function(url){
 		var deffered = q.defer();
-		var remove = ['!','#','?','&'];
-		_.map(remove,function(bad){
-			if(url.indexOf(bad) != -1){
-				url = url.split(bad)[0];
-			}
-		});
-		url += "/show_hover";
 		request({
-			url:url,
-			method:'GET',
-			timeout:15000
+			url:usFetchPath+'api/fetch/'+encodeURIComponent(url),
+			method:'get'
 		},function(err,res,body){
 			if(err || !body){
 				err.status = 101;
@@ -169,54 +162,8 @@ var support = {
 				deffered.reject(err);
 				return false;
 			}
-			if(res.statusCode == 404){
-				var err = {
-					status : 101,
-					msg : "未找到游戏资源."
-				}
-				deffered.reject(err);
-				return false;
-			}
-			var html = body;
-			var $ = cheerio.load(html);
-			if($('.screenshot_img').length == 0){
-				var err = {
-					status : 101,
-					msg : "未找到游戏资源."
-				}
-				deffered.reject(err);
-				return false;
-			}
-			downloadQuene = [];
-			_.map($('.screenshot_img'),function(dom){
-				downloadQuene.push(downloadImage($(dom).attr('src')));
-			});
-			q.all(downloadQuene).then(function(results){
-				var title = $('.gm_desc.gm_title h1').text();
-				var description = $('#gm_summary p').text();
-				if(title && description){
-					var result = {
-						title:title,
-						description:description,
-						img:results,
-						url:url,
-						status:0
-					}
-					deffered.resolve(result);
-				}else{
-					var err = {
-						status : 101,
-						msg : "未找到游戏资源."
-					}
-					deffered.reject(err);
-					return false;
-				}
-			},function(err){
-				err.status = 102;
-				err.msg = "图片存储错误.";
-				deffered.reject(err);
-				return false;
-			});	
+			var result = JSON.parse(body);
+			deffered.resolve(result);
 		});
 		return deffered.promise;
 	},
@@ -676,9 +623,7 @@ function fetch(url){
 
 function createGame(url,res){
 	fetch(url).then(function(result){
-		console.log(result);
 		result.originUrl = result.url;
-
 		delete result.url;
 		result.u77Id = result.u77Id || 0;
 		result.times = 0;
