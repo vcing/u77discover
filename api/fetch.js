@@ -160,6 +160,12 @@ var support = {
 	'a10.com':function(url){
 		return fetchFromUSA(url);
 	},
+	'enemy.com':function(url){
+		return fetchFromUSA(url);
+	},
+	'miragine.com':function(url){
+		return fetchFromUSA(url);
+	},
 	'7k7k.com':function(url){
 		var deffered = q.defer();
 		var items = url.split('/');
