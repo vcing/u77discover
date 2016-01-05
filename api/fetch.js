@@ -57,7 +57,7 @@ var support = {
 						description:description,
 						img:[result],
 						url:url,
-						status:0
+						type:1
 					}
 					deffered.resolve(result);
 				}else{
@@ -134,7 +134,7 @@ var support = {
 						description:description,
 						img:results,
 						url:url,
-						status:0
+						type:1
 					}
 					deffered.resolve(result);
 				}else{
@@ -213,7 +213,7 @@ var support = {
 						description:description,
 						img:results,
 						url:url,
-						status:0
+						type:1
 					}
 					deffered.resolve(result);
 				}else{
@@ -283,7 +283,7 @@ var support = {
 						description:description,
 						img:[results],
 						url:url,
-						status:0
+						type:1
 					}
 					deffered.resolve(result);
 				}else{
@@ -364,7 +364,7 @@ var support = {
 						description:description.trim(),
 						img:results,
 						url:url,
-						status:0
+						type:1
 					}
 					deffered.resolve(result);
 				}else{
@@ -419,7 +419,7 @@ var support = {
 				description:game.content.trim(),
 				img:[{url:game.image}],
 				url:url,
-				status:0,
+				type:1,
 				u77Id:parseInt(items[items.length - 1])
 			}
 			deffered.resolve(result);
@@ -478,7 +478,7 @@ var support = {
 						description:description.trim(),
 						img:[results],
 						url:url,
-						status:0
+						type:1
 					}
 					deffered.resolve(result);
 				}else{
@@ -677,6 +677,11 @@ function createGame(url,res){
 	});
 }
 
+/**
+ * 从美国节点获取游戏数据
+ * @param  {String} url 游戏URL
+ * @return {Promise}    采集成功后的结果json
+ */
 function fetchFromUSA(url){
 	var deffered = q.defer();
 	request({

@@ -3,6 +3,19 @@ var router  = require('express').Router();
 var q 		= require('q');
 var _ 		= require('lodash');
 
+router.get('/test',function(req,res){
+	AV.Query.doCloudQuery("select include game,* from Discover where title like '%火%'",{
+		success:function(result){
+			res.json(result);
+		},
+		error: function(error){
+			//查询失败，查看 error
+			res.json(error);
+		}
+	})
+});
+
+
 /**
  * [发现提交]
  * 1.检查相同ID是否重复提交
@@ -130,15 +143,39 @@ function hideOldDiscover(discover){
 }
 
 /**
- * 发现列表入口
+ * 发现列表查询入口
  */
 router.get('/list',function(req,res){
 	var Discover = AV.Object.extend('Discover');
 	var query    = new AV.Query(Discover);
 	query.descending('createdAt');
-	query.equalTo('isLast',true);
+	if(!req.query.debug){
+		query.equalTo('isLast',true);	
+	}
+	if(req.query.isLast){
+		query.equalTo('isLast',eval(req.query.isLast));
+	}
 	if(req.query.page){
 		query.skip((req.query.page-1) * 20);
+	}
+	if(req.query.searchType&&req.query.keywords){
+		switch(req.query.searchType){
+			case 'title':
+				searchTitle(req,res);
+				return;
+				break;
+			case 'game':
+				query.equalTo('game',AV.Object.createWithoutData('Game',req.query.keywords));
+				break;
+			default :
+				var key = req.query.keywords;
+				if(req.query.searchType == 'discoverId')key = parseInt(key);
+				query.equalTo(req.query.searchType,key);
+				break;
+		}
+	}
+	if(req.query.keywords && !req.query.searchType){
+		searchTitle(req,res);
 	}
 	query.include('game');
 	query.limit(20);
@@ -153,6 +190,49 @@ router.get('/list',function(req,res){
 		res.json(err);
 	});
 });
+
+function searchTitle(req,res){
+	// var cql = "select include game,* from Discover where title like '%?%'";
+	// if(req.query.isLast){
+	// 	cql += " and isLast = ?";
+	// 	AV.Query.doCloudQuery(cql,[req.query.keywords,req.query.isLast],{
+	// 		success:function(result){
+	// 			console.log(cql);
+	// 			res.json(result);
+	// 		},
+	// 		error:function(error){
+	// 			console.log(cql);
+	// 			res.json(error);
+	// 		}
+	// 	});
+	// }else{
+	// 	AV.Query.doCloudQuery(cql,[req.query.keywords],{
+	// 		success:function(result){
+	// 			console.log(cql);
+	// 			res.json(result);
+	// 		},
+	// 		error:function(error){
+	// 			console.log(cql);
+	// 			res.json(error);
+	// 		}
+	// 	});
+	// }
+	// 
+	var cql = "select include game,* from Discover where title like "
+	cql += "'%"+req.query.keywords+"%'";
+	if(req.query.isLast){
+		cql += " and islast = "+req.query.isLast;
+	}
+	AV.Query.doCloudQuery(cql,{
+		success:function(result){
+			res.json(result.results);
+		},
+		error:function(error){
+			console.log(cql);
+			res.json(error);
+		}
+	})
+}
 
 /**
  * 首页推荐发现列表入口 
@@ -187,16 +267,21 @@ router.get('/:id',function(req,res){
 	query.equalTo('discoverId',parseInt(req.params.id));
 	query.include('game');
 	query.first().then(function(discover){
+		if(!discover){
+			res.send('');
+			res.end();
+			return;
+		}
+		discover.set('game',discover.get('game').toJSON());
 		var result  = discover.toJSON();
-		result.game = discover.get('game');
 		AV.Promise.all([
-			getOtherUser(result.game.id,result.userId),
-			getOtherGame(result.game.id,result.userId),
+			getOtherUser(result.game.objectId,result.userId),
+			getOtherGame(result.game.objectId,result.userId),
 			getNearGame(result.discoverId)
-		]).then(function(successs){
-			result.otherUser = successs[0];
-			result.otherGame = successs[1];
-			result.nearDiscover = successs[2];
+		]).then(function(success){
+			result.otherUser = success[0];
+			result.otherGame = success[1];
+			result.nearDiscover = success[2];
 			result.status = 0;
 			result.msg = 'ok';
 			res.json(result);
@@ -291,5 +376,13 @@ function getListGame(ids,res){
 		res.json(err);
 	});
 }
+
+router.delete('/:id',function(req,res){
+	// 显示上个 最近的该游戏的推荐还没写
+	var discover = AV.Object.createWithoutData('Discover',req.params.id);
+	discover.destroy();
+});
+
+
 
 module.exports = router;
