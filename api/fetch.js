@@ -658,8 +658,8 @@ function createGame(url,res){
 		var Game = AV.Object.extend('Game');
 		var _game = new Game(result);
 		_game.save().then(function(__game){
-			__game.status = 0;
-			__game.msg = 'ok';
+			__game.set('status',0);
+			__game.set('msg', 'ok');
 			res.json(__game);
 		},function(err){
 			if(err.status){
@@ -719,6 +719,8 @@ router.get('/:url',function(req,res){
 	query.equalTo('originUrl',url);
 	query.first().then(function(game){
 		if(game){
+			game.set('status', 0);
+			game.set('msg', 'ok');
 			res.json(game);
 		}else{
 			createGame(url,res);		

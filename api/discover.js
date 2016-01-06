@@ -15,6 +15,26 @@ router.get('/test',function(req,res){
 	})
 });
 
+/**
+ * 发现修改入口
+ */
+router.post('/:id',function(req,res){
+	var discover = AV.Object.createWithoutData('Discover',req.params.id);
+	var params = req.params;
+	delete params.id;
+	_.map(params,function(value,key){
+		discover.set(key,value);
+	});
+	discover.save().then(function(_discover){
+		_discover.status = 0;
+		_discover.msg = 'ok';
+		res.json(_discover);
+	},function(err){
+		err.status = 101;
+		err.msg = "修改发现失败,请检查后重试";
+		res.json(err);
+	});
+});
 
 /**
  * [发现提交]
@@ -176,6 +196,7 @@ router.get('/list',function(req,res){
 	}
 	if(req.query.keywords && !req.query.searchType){
 		searchTitle(req,res);
+		return;
 	}
 	query.include('game');
 	query.limit(20);
@@ -192,32 +213,6 @@ router.get('/list',function(req,res){
 });
 
 function searchTitle(req,res){
-	// var cql = "select include game,* from Discover where title like '%?%'";
-	// if(req.query.isLast){
-	// 	cql += " and isLast = ?";
-	// 	AV.Query.doCloudQuery(cql,[req.query.keywords,req.query.isLast],{
-	// 		success:function(result){
-	// 			console.log(cql);
-	// 			res.json(result);
-	// 		},
-	// 		error:function(error){
-	// 			console.log(cql);
-	// 			res.json(error);
-	// 		}
-	// 	});
-	// }else{
-	// 	AV.Query.doCloudQuery(cql,[req.query.keywords],{
-	// 		success:function(result){
-	// 			console.log(cql);
-	// 			res.json(result);
-	// 		},
-	// 		error:function(error){
-	// 			console.log(cql);
-	// 			res.json(error);
-	// 		}
-	// 	});
-	// }
-	// 
 	var cql = "select include game,* from Discover where title like "
 	cql += "'%"+req.query.keywords+"%'";
 	if(req.query.isLast){
@@ -231,7 +226,7 @@ function searchTitle(req,res){
 			console.log(cql);
 			res.json(error);
 		}
-	})
+	});
 }
 
 /**
@@ -379,8 +374,22 @@ function getListGame(ids,res){
 
 router.delete('/:id',function(req,res){
 	// 显示上个 最近的该游戏的推荐还没写
-	var discover = AV.Object.createWithoutData('Discover',req.params.id);
-	discover.destroy();
+	// var discover = AV.Object.createWithoutData('Discover',req.params.id);
+	var Discover = AV.Object.extend('Discover');
+	var query = new AV.Query(Discover);
+	query.equalTo('objectId',req.params.id);
+	query.include('game');
+	query.get(req.params.id).then(function(discover){
+		var game = discover.get('game');
+		game.set('times',game.get('times')-1);
+		game.save();
+		discover.destroy();
+		res.json({
+			status : 0,
+			msg:'ok'
+		})
+	});
+	
 });
 
 
