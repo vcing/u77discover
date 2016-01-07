@@ -116,7 +116,7 @@ function createMoblieGame(url){
 							description:description,
 							img:imgQueue,
 							url:url,
-							status:0
+							type:3
 						}
 						deffered.resolve(result);
 					}else{

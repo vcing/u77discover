@@ -42,6 +42,66 @@ function searchGame(req,res){
 	})
 }
 
+function createGame(gameInfo){
+	var deffered = q.defer();
+	var Game = AV.Object.extend('Game');
+	var query = new AV.Query(Game);
+	query.equalTo('originUrl',gameInfo.originUrl);
+	query.find().then(function(result){
+		if(result.length == 0){
+			var newGame = new Game(gameInfo);
+			newGame.save().then(function(_result){
+				deffered.resolve(_result);
+			},function(err){
+				if(err.status){
+					deffered.reject(err);
+				}else{
+					err.status = 112;
+					err.msg = '生成游戏失败,请重试';
+					deffered.reject(err);
+				}
+			});
+		}else{
+			deffered.resolve(result);
+		}
+	},function(err){
+		var newGame = new Game(game);
+		newGame.save().then(function(_result){
+			deffered.resolve(_result);
+		},function(err){
+			if(err.status){
+				deffered.reject(err);
+			}else{
+				err.status = 112;
+				err.msg = '生成游戏失败,请重试';
+				deffered.reject(err);
+			}
+		});
+	});
+	return deffered.promise;
+}
+
+function createDiscover(discoverInfo){
+	var deffered = q.defer();
+	var Discover = AV.Object.extend('Discover');
+	
+	var newDiscover = new Discover(discoverInfo);
+	newDiscover.save().then(function(result){
+		deffered.resolve(result);
+	},function(err){
+		if(err.status){
+			deffered.reject(err);
+		}else{
+			err.status = 113;
+			err.msg = '生成发现失败,请重试';
+			deffered.reject(err);
+		}
+	});
+		
+	return deffered.promise;
+}
+
+
 /**
  * 发现修改入口
  */
@@ -93,5 +153,43 @@ router.delete('/:id',function(req,res){
 		res.json();
 	})
 })
+
+router.post('/',function(req,res){
+	console.log(req.body.imgs);
+	var imgList = req.body.imgs.split(",");
+	var imgs = [] ;
+	_.map(imgList,function(img){
+		imgs.push({url:img});
+	})
+	var gameInfo = {
+		title:req.body.title,
+		description:req.body.description,
+		originUrl:req.body.url,
+		img:imgs,
+		type:parseInt(req.body.type)
+	};
+	createGame(gameInfo).then(function(game){
+		var discoverInfo         = {};
+		discoverInfo.oneWord     = req.body.shortDescription;
+		discoverInfo.avatar      = req.body.avatar;
+		discoverInfo.nickname    = req.body.nickname;
+		discoverInfo.userId      = req.body.userId;
+		discoverInfo.description = req.body.description;
+		discoverInfo.cover       = req.body.topImg;
+		discoverInfo.title       = req.body.title;
+		discoverInfo.isLast	   = true;
+		discoverInfo.game	   = game;
+		createDiscover(discoverInfo).then(function(discover){
+			discover.set("status",0);
+			discover.set("msg","ok");
+			res.json(discover);
+		},function(err){
+			res.json(err);
+		});
+	},function(err){
+		res.json(err);
+	});
+
+});
 
 module.exports = router;
