@@ -47,7 +47,7 @@ function createGame(gameInfo){
 	var Game = AV.Object.extend('Game');
 	var query = new AV.Query(Game);
 	query.equalTo('originUrl',gameInfo.originUrl);
-	query.find().then(function(result){
+	query.first().then(function(result){
 		if(result.length == 0){
 			var newGame = new Game(gameInfo);
 			newGame.save().then(function(_result){
@@ -99,6 +99,17 @@ function createDiscover(discoverInfo){
 	});
 		
 	return deffered.promise;
+}
+
+/**
+ * 根据ID获取发现
+ * @param  {String} id [大仙主键Id]
+ * @return {promise}    [成功：获取的discover对象]
+ */
+function getDiscover(id){
+	var Discover = AV.Object.extend('Discover');
+	var query    = new AV.Query(Discover);
+	return query.get(id);
 }
 
 
@@ -155,7 +166,6 @@ router.delete('/:id',function(req,res){
 })
 
 router.post('/',function(req,res){
-	console.log(req.body.imgs);
 	var imgList = req.body.imgs.split(",");
 	var imgs = [] ;
 	_.map(imgList,function(img){
@@ -180,9 +190,15 @@ router.post('/',function(req,res){
 		discoverInfo.isLast	   = true;
 		discoverInfo.game	   = game;
 		createDiscover(discoverInfo).then(function(discover){
-			discover.set("status",0);
-			discover.set("msg","ok");
-			res.json(discover);
+			getDiscover(discover.id).then(function(_discover){
+				_discover.set("status",0);
+				_discover.set("msg",'ok');
+				res.json(_discover);
+			},function(err){
+				err.status = 114,
+				err.msg = '获取发现失败';
+				res.json(err);
+			})
 		},function(err){
 			res.json(err);
 		});

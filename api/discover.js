@@ -69,7 +69,7 @@ router.post('/',function(req,res){
 
 /**
  * 根据ID获取发现
- * @param  {String} id [大仙主键Id]
+ * @param  {String} id [发现主键Id]
  * @return {promise}    [成功：获取的discover对象]
  */
 function getDiscover(id){
@@ -131,7 +131,7 @@ function validDiscover(discover){
 }
 
 /**
- * 检查discover参数是否完全
+ * 隐藏旧的推荐
  * @param  {Discover} discover [传入discover对象]
  * @return {promise}          [成功：传回discover对象主键Id||失败：错误信息]
  */
