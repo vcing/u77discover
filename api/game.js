@@ -3,6 +3,9 @@ var router  = require('express').Router();
 var q 		= require('q');
 var _ 		= require('lodash');
 
+/**
+ * 列表入口
+ */
 router.get('/list',function(req,res){
 	var Game = AV.Object.extend('Game');
 	var query = new AV.Query(Game);
@@ -42,13 +45,117 @@ function searchGame(req,res){
 	})
 }
 
+/**
+ * 发现修改入口
+ */
+router.post('/:id',function(req,res){
+	var game = AV.Object.createWithoutData('Game',req.params.id);
+	var params = req.body;
+	delete params.objectId;
+	_.map(params,function(value,key){
+		game.set(key,parseInt(value));
+	});
+	game.save().then(function(_game){
+		_game.set('status', 0);
+		_game.set('msg', 'ok');
+		res.json(_game);
+	},function(err){
+		err.status = 101;
+		err.msg = "修改发现失败,请检查后重试";
+		res.json(err);
+	});
+});
+
+/**
+ * 删除游戏入口
+ */
+router.delete('/:id',function(req,res){
+	var Game = AV.Object.extend('Game');
+	var Discover = AV.Object.extend('Discover');
+	var query = new AV.Query(Game);
+	var game;
+	query.get(req.params.id)
+	.then(function(_game){
+		game = _game;
+		var _query = new AV.Query('Discover');
+		_query.equalTo('game',_game);
+		return _query.find();
+	}).then(function(discovers){
+		return AV.Object.destroyAll(discovers);
+	// });
+	}).then(function(){
+		return game.destroy();
+	}).then(function(){
+		res.json({
+			status:0,
+			msg:'ok'
+		})
+	},function(err){
+		err.status = 101,
+		err.msg = '删除游戏失败';
+		res.json();
+	});
+});
+
+/**
+ * 手动填写提交入口
+ */
+router.post('/',function(req,res){
+	//图片数组处理
+	var imgList = req.body.imgs.split(",");
+	var imgs = [] ;
+	_.map(imgList,function(img){
+		imgs.push({url:img});
+	});
+	// 游戏信息处理
+	var gameInfo = {
+		title:req.body.title,
+		description:req.body.description,
+		originUrl:req.body.url,
+		img:imgs,
+		type:parseInt(req.body.type)
+	};
+	createGame(gameInfo).then(function(game){
+		var discoverInfo         = {};
+		discoverInfo.oneWord     = req.body.shortDescription;
+		discoverInfo.avatar      = req.body.avatar;
+		discoverInfo.nickname    = req.body.nickname;
+		discoverInfo.userId      = req.body.userId;
+		discoverInfo.description = req.body.description;
+		discoverInfo.cover       = req.body.topImg;
+		discoverInfo.title       = req.body.title;
+		discoverInfo.isLast	   = true;
+		discoverInfo.game	   = game;
+		createDiscover(discoverInfo).then(function(discover){
+			getDiscover(discover.id).then(function(_discover){
+				_discover.set("status",0);
+				_discover.set("msg",'ok');
+				res.json(_discover);
+			},function(err){
+				err.status = 114,
+				err.msg = '获取发现失败';
+				res.json(err);
+			})
+		},function(err){
+			res.json(err);
+		});
+	},function(err){
+		res.json(err);
+	});
+});
+
+/**
+ * 创建手动填写游戏
+ * @param  {Object} gameInfo 游戏信息
+ * @return {Promise}
+ */
 function createGame(gameInfo){
 	var deffered = q.defer();
 	var Game = AV.Object.extend('Game');
 	var query = new AV.Query(Game);
 	query.equalTo('originUrl',gameInfo.originUrl);
 	query.first().then(function(result){
-		if(result.length == 0){
+		if(result){
 			var newGame = new Game(gameInfo);
 			newGame.save().then(function(_result){
 				deffered.resolve(_result);
@@ -103,7 +210,7 @@ function createDiscover(discoverInfo){
 
 /**
  * 根据ID获取发现
- * @param  {String} id [大仙主键Id]
+ * @param  {String} id [发现主键Id]
  * @return {promise}    [成功：获取的discover对象]
  */
 function getDiscover(id){
@@ -111,101 +218,5 @@ function getDiscover(id){
 	var query    = new AV.Query(Discover);
 	return query.get(id);
 }
-
-
-/**
- * 发现修改入口
- */
-router.post('/:id',function(req,res){
-	var game = AV.Object.createWithoutData('Game',req.params.id);
-	var params = req.body;
-	delete params.objectId;
-	_.map(params,function(value,key){
-		game.set(key,parseInt(value));
-	});
-	game.save().then(function(_game){
-		_game.set('status', 0);
-		_game.set('msg', 'ok');
-		res.json(_game);
-	},function(err){
-		err.status = 101;
-		err.msg = "修改发现失败,请检查后重试";
-		res.json(err);
-	});
-});
-
-/**
- * 删除游戏入口
- */
-router.delete('/:id',function(req,res){
-	var Game = AV.Object.extend('Game');
-	var Discover = AV.Object.extend('Discover');
-	var query = new AV.Query(Game);
-	var game;
-	query.get(req.params.id)
-	.then(function(_game){
-		game = _game;
-		var _query = new AV.Query('Discover');
-		_query.equalTo('game',_game);
-		return _query.find();
-	}).then(function(discovers){
-		return AV.Object.destroyAll(discovers);
-	// });
-	}).then(function(){
-		return game.destroy();
-	}).then(function(){
-		res.json({
-			status:0,
-			msg:'ok'
-		})
-	},function(err){
-		err.status = 101,
-		err.msg = '删除游戏失败';
-		res.json();
-	})
-})
-
-router.post('/',function(req,res){
-	var imgList = req.body.imgs.split(",");
-	var imgs = [] ;
-	_.map(imgList,function(img){
-		imgs.push({url:img});
-	})
-	var gameInfo = {
-		title:req.body.title,
-		description:req.body.description,
-		originUrl:req.body.url,
-		img:imgs,
-		type:parseInt(req.body.type)
-	};
-	createGame(gameInfo).then(function(game){
-		var discoverInfo         = {};
-		discoverInfo.oneWord     = req.body.shortDescription;
-		discoverInfo.avatar      = req.body.avatar;
-		discoverInfo.nickname    = req.body.nickname;
-		discoverInfo.userId      = req.body.userId;
-		discoverInfo.description = req.body.description;
-		discoverInfo.cover       = req.body.topImg;
-		discoverInfo.title       = req.body.title;
-		discoverInfo.isLast	   = true;
-		discoverInfo.game	   = game;
-		createDiscover(discoverInfo).then(function(discover){
-			getDiscover(discover.id).then(function(_discover){
-				_discover.set("status",0);
-				_discover.set("msg",'ok');
-				res.json(_discover);
-			},function(err){
-				err.status = 114,
-				err.msg = '获取发现失败';
-				res.json(err);
-			})
-		},function(err){
-			res.json(err);
-		});
-	},function(err){
-		res.json(err);
-	});
-
-});
 
 module.exports = router;

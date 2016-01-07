@@ -643,6 +643,30 @@ function fetch(url){
 	return _fn(url);
 }
 
+
+/**
+ * 从美国节点获取游戏数据
+ * @param  {String} url 游戏URL
+ * @return {Promise}    采集成功后的结果json
+ */
+function fetchFromUSA(url){
+	var deffered = q.defer();
+	request({
+		url:usFetchPath+'api/fetch/'+encodeURIComponent(url),
+		method:'get'
+	},function(err,res,body){
+		if(err || !body){
+			err.status = 101;
+			err.msg = "未找到游戏资源.";
+			deffered.reject(err);
+			return false;
+		}
+		var result = JSON.parse(body);
+		deffered.resolve(result);
+	});
+	return deffered.promise;
+}
+
 /**
  * 存入游戏信息
  * @param  {String} url [游戏地址]
@@ -679,33 +703,8 @@ function createGame(url,res){
 			err.msg = '创建游戏出错,请重试';
 			res.json(err);
 		}
-		
 	});
 }
-
-/**
- * 从美国节点获取游戏数据
- * @param  {String} url 游戏URL
- * @return {Promise}    采集成功后的结果json
- */
-function fetchFromUSA(url){
-	var deffered = q.defer();
-	request({
-		url:usFetchPath+'api/fetch/'+encodeURIComponent(url),
-		method:'get'
-	},function(err,res,body){
-		if(err || !body){
-			err.status = 101;
-			err.msg = "未找到游戏资源.";
-			deffered.reject(err);
-			return false;
-		}
-		var result = JSON.parse(body);
-		deffered.resolve(result);
-	});
-	return deffered.promise;
-}
-
 
 /**
  * [路由入口]

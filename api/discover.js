@@ -43,14 +43,24 @@ router.post('/:id',function(req,res){
  * 3.隐藏之前相同的发现
  * 4.重新获取此发现（discoverId未自增，开始存入时不会获取到，现在必须重新获取）
  * 5.执行回调
- * @return {[type]}                                                                                                                                                                                             [description]
+ * @return {void}                                                                                                                                                                                             [description]
  */
 router.post('/',function(req,res){
-	duplicateCheck(req.body)
-	.then(validDiscover)
-	.then(hideOldDiscover)
-	.then(getDiscover)
-	.then(function(discover){
+	var promise;
+	// 已存在game推荐
+	if(req.body.game){
+		promise = duplicateCheck(req.body)
+		.then(validDiscover)
+		.then(hideOldDiscover)
+		.then(getDiscover);
+	}else{
+		promise = validOriginUrl(req.body.originUrl)
+		.then(createGame(req.body))
+		.then(combineDiscover(req.body))
+		.then(validDiscover)
+		.then(getDiscover);
+	}
+	promise.then(function(discover){
 		res.json({
 			status:0,
 			msg:'ok',
@@ -64,8 +74,80 @@ router.post('/',function(req,res){
 			err.msg = '游戏发射失败,请联系检修组';
 			res.json(err);	
 		}
-	})
+	});
 });
+
+function combineDiscover(params){
+	return function(game){
+		result = {
+			oneWord     : params.oneWord,
+			avatar      : params.avatar,
+			nickname    : params.nickname,
+			userId      : params.userId,
+			description : params.description,
+			cover       : params.cover,
+			title       : params.title,
+			game 		: game.id
+		}
+		return AV.Promise.as(result);
+	}
+}
+
+/**
+ * 手动填写 创建游戏
+ * @param  {Object} params 游戏参数对象
+ * @return {Promise}        生成的游戏对象
+ */
+function createGame(params){
+	return function(hasDuplicate){
+		var promise = new AV.Promise();
+		if(!hasDuplicate){
+			var imgs = params.img.split(',');
+			var _imgs = [];
+			_.map(imgs,function(img){
+				_imgs.push({url:img});
+			});
+			var gameData = {
+				title:params.title,
+				description:params.content.trim(),
+				img:_imgs,
+				originUrl:params.url,
+				type:params.type,
+				u77Id:0
+			}
+			// 表单验证
+			_.map(gameData,function(value,key){
+				if(!value){
+					promise.reject({
+						status:103,
+						msg:'字段'+key+'不合法,请检查后重试'
+					});
+				}
+			});
+			var Game = AV.Object.extend('Game');
+			var game = new Game(gameData);
+			game.save().then(promise.resolve,promise.reject)
+		}else{
+			promise.reject({
+				status:102,
+				msg:'游戏已存在,请重新获取游戏地址.'
+			});
+		}
+		return promise;
+	}
+}
+
+/**
+ * 验证URL是否已经存在
+ * @param  {String} url 手动填写的URL
+ * @return {Promise}     查找到的结果
+ */
+function validOriginUrl(url){
+	var Game = AV.Object.extend('Game');
+	var query = new AV.Query(Game);
+	query.equalTo('originUrl',url);
+	return query.first();
+}
 
 /**
  * 根据ID获取发现
@@ -212,6 +294,12 @@ router.get('/list',function(req,res){
 	});
 });
 
+/**
+ * 按标题搜索发现
+ * @param  {Object} req 请求
+ * @param  {Object} res 响应
+ * @return {void}
+ */
 function searchTitle(req,res){
 	var cql = "select include game,* from Discover where title like "
 	cql += "'%"+req.query.keywords+"%'";
@@ -392,6 +480,32 @@ router.delete('/:id',function(req,res){
 	
 });
 
-
+/**
+ * 在线采集 提交表单
+ * {
+ * 		game:游戏ID
+		description:简介
+		oneWord:一句话攻略
+		avatar:用户头像
+		userId:用户ID
+		nickname:用户昵称
+		title:游戏标题
+		cover:游戏封面图
+ * }
+ * 手动填写 提交表单
+ * {
+ * 		game:游戏ID
+		description:简介
+		oneWord:一句话攻略
+		avatar:用户头像
+		userId:用户ID
+		nickname:用户昵称
+		title:游戏标题
+		cover:游戏封面图
+		imgs:游戏图片列表用,分割
+		originUrl:游戏地址
+		type:游戏类型 1:web 2:pc 3:android 4:iOS
+ * }
+ */
 
 module.exports = router;
