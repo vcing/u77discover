@@ -484,7 +484,7 @@ var support = {
 						description:description.trim(),
 						img:[results],
 						url:url,
-						type:1
+						type:2
 					}
 					deffered.resolve(result);
 				}else{
@@ -582,7 +582,7 @@ var support = {
 						description:description.trim(),
 						img:results,
 						url:url,
-						type:1
+						type:4
 					}
 					deffered.resolve(result);
 				}else{
