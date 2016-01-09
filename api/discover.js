@@ -89,6 +89,7 @@ function combineDiscover(params){
 			description : params.description,
 			cover       : params.cover,
 			title       : params.title,
+			img 		: params.img,
 			game 		: game.id
 		}
 		return AV.Promise.as(result);
@@ -103,7 +104,7 @@ function combineDiscover(params){
 function createGame(params){
 	return function(hasDuplicate){
 		if(!hasDuplicate){
-			var imgs = params.imgs.split(',');
+			var imgs = params.img.split(',');
 			var _imgs = [];
 			_.map(imgs,function(img){
 				_imgs.push({url:img});
@@ -335,6 +336,7 @@ router.get('/index',function(req,res){
 	webInnerQuery.limit(5);
 	webQuery.matchesQuery('game',webInnerQuery);
 	webQuery.equalTo('isLast',true);
+	webQuery.descending('createdAt');
 	
 	var pcQuery = new AV.Query(Discover);
 	var pcInnerQuery = new AV.Query(Game);
@@ -344,6 +346,7 @@ router.get('/index',function(req,res){
 	pcInnerQuery.limit(5);
 	pcQuery.matchesQuery('game',pcInnerQuery);
 	pcQuery.equalTo('isLast',true);
+	pcQuery.descending('createdAt');
 
 	var androidQuery = new AV.Query(Game);
 	androidQuery.greaterThan('times',0);
@@ -361,6 +364,7 @@ router.get('/index',function(req,res){
 	var pQuery = new AV.Query(Discover);
 	pQuery.matchesQuery('game',phoneQuery);
 	pQuery.equalTo('isLast',true);
+	pQuery.descending('createdAt');
 
 	AV.Promise.all([
 		webQuery.find(),
