@@ -325,14 +325,54 @@ function searchTitle(req,res){
  * 首页推荐发现列表入口 
  */
 router.get('/index',function(req,res){
+	var Game     = AV.Object.extend('Game');
 	var Discover = AV.Object.extend('Discover');
-	var query    = new AV.Query(Discover);
-	query.descending('createdAt');
-	query.equalTo('isLast',true);
-	query.limit(5);
-	query.find().then(function(result){
+	var webQuery = new AV.Query(Discover);
+	var webInnerQuery = new AV.Query(Game);
+	webInnerQuery.equalTo('type',1);
+	webInnerQuery.greaterThan('times',0);
+	webInnerQuery.descending('updatedAt');
+	webInnerQuery.limit(5);
+	webQuery.matchesQuery('game',webInnerQuery);
+	webQuery.equalTo('isLast',true);
+	
+	var pcQuery = new AV.Query(Discover);
+	var pcInnerQuery = new AV.Query(Game);
+	pcInnerQuery.equalTo('type',2);
+	pcInnerQuery.greaterThan('times',0);
+	pcInnerQuery.descending('updatedAt');
+	pcInnerQuery.limit(5);
+	pcQuery.matchesQuery('game',pcInnerQuery);
+	pcQuery.equalTo('isLast',true);
+
+	var androidQuery = new AV.Query(Game);
+	androidQuery.greaterThan('times',0);
+	androidQuery.equalTo('type',3);
+	androidQuery.limit(5);
+	
+	var iOSQuery = new AV.Query(Game);
+	iOSQuery.greaterThan('times',0);
+	iOSQuery.equalTo('type',4);
+	iOSQuery.limit(5);
+
+	var phoneQuery = new AV.Query.or(androidQuery,iOSQuery);
+	phoneQuery.descending('updatedAt');
+	phoneQuery.limit(5);
+	var pQuery = new AV.Query(Discover);
+	pQuery.matchesQuery('game',phoneQuery);
+	pQuery.equalTo('isLast',true);
+
+	AV.Promise.all([
+		webQuery.find(),
+		pcQuery.find(),
+		pQuery.find()
+	]).then(function(games){
+		var result = {};
 		result.status = 0;
 		result.msg = 'ok';
+		result.web = games[0];
+		result.pc = games[1];
+		result.phone = games[2];
 		res.json(result);
 	},function(err){
 		err.status = 109;

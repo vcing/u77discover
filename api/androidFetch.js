@@ -244,7 +244,7 @@ function downloadImage(url){
 			deffered.reject(err ? err : 'no body');
 		}
 		if(res.statusCode == 404){
-			deffered.resolve({url:'http://www.u77.com/static/img/logo1.png'});
+			deffered.resolve({url:'http://file.u77.com/static/img/pic404.jpg'});
 		}
 	})
 	.pipe(request({
