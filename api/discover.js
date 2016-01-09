@@ -114,7 +114,8 @@ function createGame(params){
 				img:_imgs,
 				originUrl:params.originUrl,
 				type:parseInt(params.type),
-				u77Id:0
+				u77Id:0,
+				times:1
 			}
 			// 表单验证
 			var promise;
@@ -207,7 +208,8 @@ function validDiscover(discover){
 	result.description = discover.description;
 	result.cover       = discover.cover;
 	result.title       = discover.title;
-	result.isLast	   = true;
+	result.img         = discover.img.split(',');
+	result.isLast      = true;
 	var Discover       = AV.Object.extend('Discover');
 	var _discover      = new Discover(result);
 	_discover.set('game',AV.Object.createWithoutData("Game", discover.game));

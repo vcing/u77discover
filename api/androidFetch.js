@@ -49,7 +49,7 @@ function createMoblieGame(url){
 			}
 			if(res.statusCode == 404){
 				var err = {
-					status : 101,
+					status : 102,
 					msg : "未找到游戏资源."
 				}
 				deffered.reject(err);
@@ -79,7 +79,7 @@ function createMoblieGame(url){
 			},function(err,_res,_body){
 				if(err || !_body){
 					var err = {
-						status : 101,
+						status : 104,
 						msg : "未找到游戏资源."
 					}
 					deffered.reject(err);
@@ -87,7 +87,7 @@ function createMoblieGame(url){
 				}
 				if(res.statusCode == 404){
 					var err = {
-						status : 101,
+						status : 105,
 						msg : "未找到游戏资源."
 					}
 					deffered.reject(err);
@@ -96,7 +96,7 @@ function createMoblieGame(url){
 				var $ = cheerio.load(_body);
 				if($('.form-group .ex-screenshot-thumb-carousel img').length == 0 ){
 					var err = {
-						status : 101,
+						status : 106,
 						msg : "未找到游戏资源."
 					}
 					deffered.reject(err);
@@ -121,14 +121,14 @@ function createMoblieGame(url){
 						deffered.resolve(result);
 					}else{
 						var err = {
-							status : 101,
+							status : 107,
 							msg : "未找到游戏资源."
 						}
 						deffered.reject(err);
 						return false;
 						}
 				},function(err){
-					err.status = 102;
+					err.status = 108;
 					err.msg = "图片存储错误.";
 					deffered.reject(err);
 					return false;
@@ -146,7 +146,9 @@ function createMoblieGame(url){
 function getLoginCookies(){
 	var j;
 	if(global.j){
+		console.log('从缓存获取cookies');
 		j = global.j
+		return AV.Promise.as(j);
 	}else{
 		j = request.jar();
 		global.j = j;
@@ -160,7 +162,7 @@ function getLoginCookies(){
 	},function(err,_res,body){
 		if(err || !body){
 			var err = {
-				status : 103,
+				status : 109,
 				msg : "游戏资源获取失败，请联系管理员."
 			}
 			deffered.reject(err);
@@ -168,7 +170,7 @@ function getLoginCookies(){
 		}
 		if(_res.statusCode == 404){
 			var err = {
-				status : 103,
+				status : 110,
 				msg : "游戏资源获取失败，请联系管理员."
 			}
 			deffered.reject(err);
@@ -176,7 +178,7 @@ function getLoginCookies(){
 		var $ = cheerio.load(body);
 		if($('.form-signin input[name=requestHash]').length == 0 ){
 			var err = {
-				status : 103,
+				status : 111,
 				msg : "游戏资源获取失败，请联系管理员."
 			}
 			deffered.reject(err);
@@ -200,14 +202,14 @@ function getLoginCookies(){
 			jar:j
 		},function(err,__res,_body){
 			if(err){
-				err.status = 103;
+				err.status = 112;
 				err.msg = "游戏资源获取失败，请联系管理员.";
 				deffered.reject(err);
 				return false;
 			}
 			if(__res.statusCode == 404){
 				var err = {
-					status : 103,
+					status : 113,
 					msg : "游戏资源获取失败，请联系管理员."
 				}
 				deffered.reject(err);
@@ -241,6 +243,9 @@ function downloadImage(url){
 	},function(err,res,body){
 		if(err || !body){
 			deffered.reject(err ? err : 'no body');
+		}
+		if(res.statusCode == 404){
+			deffered.resolve({url:'http://www.u77.com/static/img/logo1.png'});
 		}
 	})
 	.pipe(request({
