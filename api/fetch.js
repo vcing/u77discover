@@ -42,7 +42,7 @@ var support = {
 			var $ = cheerio.load(html);
 			if($('.gm_img_300 img').length == 0){
 				var err = {
-					status : 101,
+					status : 102,
 					msg : "未找到游戏资源."
 				}
 				deffered.reject(err);
@@ -62,14 +62,14 @@ var support = {
 					deffered.resolve(result);
 				}else{
 					var err = {
-						status : 101,
+						status : 103,
 						msg : "未找到游戏资源."
 					}
 					deffered.reject(err);
 					return false;
 				}
 			},function(err){
-				err.status = 102;
+				err.status = 104;
 				err.msg = "图片存储错误.";
 				deffered.reject(err);
 				return false;
@@ -90,14 +90,14 @@ var support = {
 			timeout:3000,
 		},function(err,res,body){
 			if(err || !body){
-				err.status = 101;
+				err.status = 105;
 				err.msg = "未找到游戏资源.";
 				deffered.reject(err);
 				return false;
 			}
 			if(res.statusCode == 404){
 				var err = {
-					status : 101,
+					status : 106,
 					msg : "未找到游戏资源."
 				}
 				deffered.reject(err);
@@ -107,7 +107,7 @@ var support = {
 			var $ = cheerio.load(html);
 			if($('#pics_list img').length == 0 && $('.p_img img').length == 0){
 				var err = {
-					status : 101,
+					status : 107,
 					msg : "未找到游戏资源."
 				}
 				deffered.reject(err);
@@ -139,14 +139,14 @@ var support = {
 					deffered.resolve(result);
 				}else{
 					var err = {
-						status : 101,
+						status : 108,
 						msg : "未找到游戏资源."
 					}
 					deffered.reject(err);
 					return false;
 				}
 			},function(err){
-				err.status = 102;
+				err.status = 109;
 				err.msg = "图片存储错误.";
 				deffered.reject(err);
 				return false;
@@ -183,14 +183,14 @@ var support = {
 			timeout:3000,
 		},function(err,res,body){
 			if(err || !body){
-				err.status = 101;
+				err.status = 110;
 				err.msg = "未找到游戏资源.";
 				deffered.reject(err);
 				return false;
 			}
 			if(res.statusCode == 404){
 				var err = {
-					status : 101,
+					status : 111,
 					msg : "未找到游戏资源."
 				}
 				deffered.reject(err);
@@ -200,7 +200,7 @@ var support = {
 			var $ = cheerio.load(html);
 			if($('.ui-img-list .pic').length == 0){
 				var err = {
-					status : 101,
+					status : 112,
 					msg : "未找到游戏资源."
 				}
 				deffered.reject(err);
@@ -224,14 +224,14 @@ var support = {
 					deffered.resolve(result);
 				}else{
 					var err = {
-						status : 101,
+						status : 113,
 						msg : "未找到游戏资源."
 					}
 					deffered.reject(err);
 					return false;
 				}
 			},function(err){
-				err.status = 102;
+				err.status = 114;
 				err.msg = "图片存储错误.";
 				deffered.reject(err);
 				return false;
@@ -257,14 +257,14 @@ var support = {
 			timeout:3000,
 		},function(err,res,body){
 			if(err || !body){
-				err.status = 101;
+				err.status = 115;
 				err.msg = "未找到游戏资源.";
 				deffered.reject(err);
 				return false;
 			}
 			if(res.statusCode == 404){
 				var err = {
-					status : 101,
+					status : 116,
 					msg : "未找到游戏资源."
 				}
 				deffered.reject(err);
@@ -274,7 +274,7 @@ var support = {
 			var $ = cheerio.load(html);
 			if($('.b_pic img').length == 0){
 				var err = {
-					status : 101,
+					status : 117,
 					msg : "未找到游戏资源."
 				}
 				deffered.reject(err);
@@ -294,14 +294,14 @@ var support = {
 					deffered.resolve(result);
 				}else{
 					var err = {
-						status : 101,
+						status : 118,
 						msg : "未找到游戏资源."
 					}
 					deffered.reject(err);
 					return false;
 				}
 			},function(err){
-				err.status = 102;
+				err.status = 119;
 				err.msg = "图片存储错误.";
 				deffered.reject(err);
 				return false;
@@ -334,14 +334,14 @@ var support = {
 			timeout:3000,
 		},function(err,res,body){
 			if(err || !body){
-				err.status = 101;
+				err.status = 120;
 				err.msg = "未找到游戏资源.";
 				deffered.reject(err);
 				return false;
 			}
 			if(res.statusCode == 404){
 				var err = {
-					status : 101,
+					status : 121,
 					msg : "未找到游戏资源."
 				}
 				deffered.reject(err);
@@ -351,7 +351,7 @@ var support = {
 			var $ = cheerio.load(html);
 			if($('.slidewrap img').length == 0){
 				var err = {
-					status : 101,
+					status : 122,
 					msg : "未找到游戏资源."
 				}
 				deffered.reject(err);
@@ -375,14 +375,14 @@ var support = {
 					deffered.resolve(result);
 				}else{
 					var err = {
-						status : 101,
+						status : 123,
 						msg : "未找到游戏资源."
 					}
 					deffered.reject(err);
 					return false;
 				}
 			},function(err){
-				err.status = 102;
+				err.status = 124;
 				err.msg = "图片存储错误.";
 				deffered.reject(err);
 				return false;
@@ -402,14 +402,14 @@ var support = {
 			timeout:3000,
 		},function(err,res,body){
 			if(err || !body){
-				err.status = 101;
+				err.status = 125;
 				err.msg = "未找到游戏资源.";
 				deffered.reject(err);
 				return false;
 			}
 			if(res.statusCode == 404){
 				var err = {
-					status : 101,
+					status : 126,
 					msg : "未找到游戏资源."
 				}
 				deffered.reject(err);
@@ -450,7 +450,7 @@ var support = {
 			}
 			if(res.statusCode == 404){
 				var err = {
-					status : 101,
+					status : 127,
 					msg : "未找到游戏资源."
 				}
 				deffered.reject(err);
@@ -459,7 +459,7 @@ var support = {
 			var $ = cheerio.load(body);
 			if($('#agecheck_form').length != 0){
 				var err = {
-					status : 103,
+					status : 128,
 					msg : "此游戏有年龄限制."
 				}
 				deffered.reject(err);
@@ -468,7 +468,7 @@ var support = {
 
 			if($('.game_header_image_full').length == 0){
 				var err = {
-					status : 101,
+					status : 129,
 					msg : "未找到游戏资源."
 				}
 				deffered.reject(err);
@@ -489,14 +489,14 @@ var support = {
 					deffered.resolve(result);
 				}else{
 					var err = {
-						status : 101,
+						status : 130,
 						msg : "未找到游戏资源."
 					}
 					deffered.reject(err);
 					return false;
 				}
 			},function(err){
-				err.status = 102;
+				err.status = 131;
 				err.msg = "图片存储错误.";
 				deffered.reject(err);
 				return false;
@@ -634,7 +634,7 @@ function fetch(url){
 	if(_fn === undefined){
 		var deffered = q.defer();
 		var err = {
-			status : 101,
+			status : 132,
 			msg : "未找到游戏资源."
 		}
 		deffered.reject(err);
@@ -656,7 +656,7 @@ function fetchFromUSA(url){
 		method:'get'
 	},function(err,res,body){
 		if(err || !body){
-			err.status = 101;
+			err.status = 133;
 			err.msg = "未找到游戏资源.";
 			deffered.reject(err);
 			return false;
@@ -689,7 +689,7 @@ function createGame(url,res){
 			if(err.status){
 				res.json(err);
 			}else{
-				err.status = 112;
+				err.status = 134;
 				err.msg = '生成游戏失败,请重试';
 				res.json(err);
 			}
@@ -699,7 +699,7 @@ function createGame(url,res){
 		if(err.status){
 			res.json(err);
 		}else{
-			err.status = 111;
+			err.status = 135;
 			err.msg = '创建游戏出错,请重试';
 			res.json(err);
 		}

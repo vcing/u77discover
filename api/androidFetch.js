@@ -146,7 +146,6 @@ function createMoblieGame(url){
 function getLoginCookies(){
 	var j;
 	if(global.j){
-		console.log('从缓存获取cookies');
 		j = global.j
 		return AV.Promise.as(j);
 	}else{

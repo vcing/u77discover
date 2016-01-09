@@ -60,7 +60,7 @@ router.post('/:id',function(req,res){
 		_game.set('msg', 'ok');
 		res.json(_game);
 	},function(err){
-		err.status = 101;
+		err.status = 102;
 		err.msg = "修改发现失败,请检查后重试";
 		res.json(err);
 	});
@@ -91,132 +91,11 @@ router.delete('/:id',function(req,res){
 			msg:'ok'
 		})
 	},function(err){
-		err.status = 101,
+		err.status = 103,
 		err.msg = '删除游戏失败';
 		res.json();
 	});
 });
 
-/**
- * 手动填写提交入口
- */
-router.post('/',function(req,res){
-	//图片数组处理
-	var imgList = req.body.imgs.split(",");
-	var imgs = [] ;
-	_.map(imgList,function(img){
-		imgs.push({url:img});
-	});
-	// 游戏信息处理
-	var gameInfo = {
-		title:req.body.title,
-		description:req.body.description,
-		originUrl:req.body.url,
-		img:imgs,
-		type:parseInt(req.body.type)
-	};
-	createGame(gameInfo).then(function(game){
-		var discoverInfo         = {};
-		discoverInfo.oneWord     = req.body.shortDescription;
-		discoverInfo.avatar      = req.body.avatar;
-		discoverInfo.nickname    = req.body.nickname;
-		discoverInfo.userId      = req.body.userId;
-		discoverInfo.description = req.body.description;
-		discoverInfo.cover       = req.body.topImg;
-		discoverInfo.title       = req.body.title;
-		discoverInfo.isLast	   = true;
-		discoverInfo.game	   = game;
-		createDiscover(discoverInfo).then(function(discover){
-			getDiscover(discover.id).then(function(_discover){
-				_discover.set("status",0);
-				_discover.set("msg",'ok');
-				res.json(_discover);
-			},function(err){
-				err.status = 114,
-				err.msg = '获取发现失败';
-				res.json(err);
-			})
-		},function(err){
-			res.json(err);
-		});
-	},function(err){
-		res.json(err);
-	});
-});
-
-/**
- * 创建手动填写游戏
- * @param  {Object} gameInfo 游戏信息
- * @return {Promise}
- */
-function createGame(gameInfo){
-	var deffered = q.defer();
-	var Game = AV.Object.extend('Game');
-	var query = new AV.Query(Game);
-	query.equalTo('originUrl',gameInfo.originUrl);
-	query.first().then(function(result){
-		if(!result){
-			var newGame = new Game(gameInfo);
-			newGame.save().then(function(_result){
-				deffered.resolve(_result);
-			},function(err){
-				if(err.status){
-					deffered.reject(err);
-				}else{
-					err.status = 112;
-					err.msg = '生成游戏失败,请重试';
-					deffered.reject(err);
-				}
-			});
-		}else{
-			deffered.resolve(result);
-		}
-	},function(err){
-		var newGame = new Game(game);
-		newGame.save().then(function(_result){
-			deffered.resolve(_result);
-		},function(err){
-			if(err.status){
-				deffered.reject(err);
-			}else{
-				err.status = 112;
-				err.msg = '生成游戏失败,请重试';
-				deffered.reject(err);
-			}
-		});
-	});
-	return deffered.promise;
-}
-
-function createDiscover(discoverInfo){
-	var deffered = q.defer();
-	var Discover = AV.Object.extend('Discover');
-	
-	var newDiscover = new Discover(discoverInfo);
-	newDiscover.save().then(function(result){
-		deffered.resolve(result);
-	},function(err){
-		if(err.status){
-			deffered.reject(err);
-		}else{
-			err.status = 113;
-			err.msg = '生成发现失败,请重试';
-			deffered.reject(err);
-		}
-	});
-		
-	return deffered.promise;
-}
-
-/**
- * 根据ID获取发现
- * @param  {String} id [发现主键Id]
- * @return {promise}    [成功：获取的discover对象]
- */
-function getDiscover(id){
-	var Discover = AV.Object.extend('Discover');
-	var query    = new AV.Query(Discover);
-	return query.get(id);
-}
 
 module.exports = router;

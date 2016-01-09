@@ -72,7 +72,7 @@ router.post('/',function(req,res){
 		if(err.status){
 			res.json(err);
 		}else{
-			err.status = 101;
+			err.status = 102;
 			err.msg = '游戏发射失败,请联系检修组';
 			res.json(err);	
 		}
@@ -133,7 +133,7 @@ function createGame(params){
 			return game.save();
 		}else{
 			return AV.Promise.error({
-				status:102,
+				status:104,
 				msg:'游戏已存在,请重新获取游戏地址.'
 			});
 		}
@@ -182,12 +182,12 @@ function duplicateCheck(discover){
 			promise.resolve(discover);
 		}else{
 			promise.reject({
-				status:101,
+				status:105,
 				msg:'您已推荐过该游戏,请勿重复推荐'
 			})
 		}
 	},function(err){
-		err.status = 102;
+		err.status = 106;
 		err.msg    = '检测重复推荐出错,请重试.';
 		promise.reject(err);
 	})
@@ -236,7 +236,7 @@ function hideOldDiscover(discover){
 			.then(function(){
 				promise.resolve(discover.id);
 			},function(err){
-				err.status = 102;
+				err.status = 107;
 				err.msg    = '隐藏重复推荐失败,请重试.';
 				promise.reject(err);
 			});	
@@ -292,7 +292,7 @@ router.get('/list',function(req,res){
 		});
 		res.json(result);
 	},function(err){
-		err.status = 101;
+		err.status = 108;
 		err.msg = '获取发现列表失败';
 		res.json(err);
 	});
@@ -335,7 +335,7 @@ router.get('/index',function(req,res){
 		result.msg = 'ok';
 		res.json(result);
 	},function(err){
-		err.status = 101;
+		err.status = 109;
 		err.msg = '获取发现列表失败';
 		res.json(err);
 	});
@@ -373,13 +373,13 @@ router.get('/:id',function(req,res){
 			result.msg = 'ok';
 			res.json(result);
 		},function(err){
-			err.status = 102;
+			err.status = 110;
 			err.msg = '查询游戏相关信息失败';
 			res.json(err);
 		});
 		
 	},function(err){
-		err.status = 101;
+		err.status = 111;
 		err.msg = '查询游戏失败';
 		res.json(err);
 	});
@@ -458,7 +458,7 @@ function getListGame(ids,res){
 		result.msg = 'ok';
 		res.json(result);
 	},function(err){
-		err.status = 101;
+		err.status = 112;
 		err.msg = '获取游戏列表失败';
 		res.json(err);
 	});
