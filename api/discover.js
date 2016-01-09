@@ -58,6 +58,7 @@ router.post('/',function(req,res){
 		.then(createGame(req.body))
 		.then(combineDiscover(req.body))
 		.then(validDiscover)
+		.then(hideOldDiscover)
 		.then(getDiscover);
 	}
 	promise.then(function(discover){
@@ -65,8 +66,9 @@ router.post('/',function(req,res){
 			status:0,
 			msg:'ok',
 			discover:discover
-		})	
+		});
 	},function(err){
+		console.log(err);
 		if(err.status){
 			res.json(err);
 		}else{
@@ -100,40 +102,40 @@ function combineDiscover(params){
  */
 function createGame(params){
 	return function(hasDuplicate){
-		var promise = new AV.Promise();
 		if(!hasDuplicate){
-			var imgs = params.img.split(',');
+			var imgs = params.imgs.split(',');
 			var _imgs = [];
 			_.map(imgs,function(img){
 				_imgs.push({url:img});
 			});
 			var gameData = {
 				title:params.title,
-				description:params.content.trim(),
+				description:params.description.trim(),
 				img:_imgs,
-				originUrl:params.url,
-				type:params.type,
+				originUrl:params.originUrl,
+				type:parseInt(params.type),
 				u77Id:0
 			}
 			// 表单验证
+			var promise;
 			_.map(gameData,function(value,key){
-				if(!value){
-					promise.reject({
+				if(!value && value !== 0){
+					promise = AV.Promise.error({
 						status:103,
 						msg:'字段'+key+'不合法,请检查后重试'
 					});
 				}
 			});
+			if(promise)return promise;
 			var Game = AV.Object.extend('Game');
 			var game = new Game(gameData);
-			game.save().then(promise.resolve,promise.reject)
+			return game.save();
 		}else{
-			promise.reject({
+			return AV.Promise.error({
 				status:102,
 				msg:'游戏已存在,请重新获取游戏地址.'
 			});
 		}
-		return promise;
 	}
 }
 

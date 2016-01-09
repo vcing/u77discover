@@ -155,7 +155,7 @@ function createGame(gameInfo){
 	var query = new AV.Query(Game);
 	query.equalTo('originUrl',gameInfo.originUrl);
 	query.first().then(function(result){
-		if(result){
+		if(!result){
 			var newGame = new Game(gameInfo);
 			newGame.save().then(function(_result){
 				deffered.resolve(_result);
