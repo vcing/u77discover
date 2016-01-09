@@ -534,6 +534,74 @@ var support = {
 	},
 	'appchina.com':function(url){
 		return androidFetch(url);
+	},
+	'apple.com':function(url){
+		var deffered = q.defer();
+
+		request({
+			url:url,
+			encoding:null,
+			method:'get',
+			timeout:3000,
+		},function(err,res,body){
+			if(err || !body){
+				err.status = 101;
+				err.msg = "未找到游戏资源.";
+				deffered.reject(err);
+				return false;
+			}
+			if(res.statusCode == 404){
+				var err = {
+					status : 127,
+					msg : "未找到游戏资源."
+				}
+				deffered.reject(err);
+				return false;
+			}
+
+			var $ = cheerio.load(body);
+
+			if($('.iphone-screen-shots img').length == 0) {
+				var err = {
+					status : 129,
+					msg : "未找到游戏资源."
+				}
+				deffered.reject(err);
+				return false;
+			}
+			downloadQuene = [];
+			_.map($('.iphone-screen-shots img'),function(dom){
+				downloadQuene.push(downloadImage($(dom).attr('src')));
+			});
+			q.all(downloadQuene).then(function(results){
+				var title = $('#title h1').text();
+				var description = $('.center-stack .product-review p[itemprop="description"]').text();
+				if(title && description){
+					var result = {
+						title:title,
+						description:description.trim(),
+						img:results,
+						url:url,
+						type:1
+					}
+					deffered.resolve(result);
+				}else{
+					var err = {
+						status : 130,
+						msg : "未找到游戏资源."
+					}
+					deffered.reject(err);
+					return false;
+				}
+			},function(err){
+				err.status = 131;
+				err.msg = "图片存储错误.";
+				deffered.reject(err);
+				return false;
+			});	
+		});
+
+		return deffered.promise;
 	}
 }
 
