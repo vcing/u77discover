@@ -2,6 +2,7 @@ var AV      = require('../cloud/av.js');
 var router  = require('express').Router();
 var q 		= require('q');
 var _ 		= require('lodash');
+var moment  = require('moment');
 
 router.get('/test',function(req,res){
 	AV.Query.doCloudQuery("select include game,* from Discover where title like '%火%'",{
@@ -129,7 +130,7 @@ function createGame(params){
 				}
 			});
 			if(promise)return promise;
-			var Game = AV.Object.extend('Game');
+			var Game = global.Game;
 			var game = new Game(gameData);
 			return game.save();
 		}else{
@@ -147,7 +148,7 @@ function createGame(params){
  * @return {Promise}     查找到的结果
  */
 function validOriginUrl(url){
-	var Game = AV.Object.extend('Game');
+	var Game = global.Game;
 	var query = new AV.Query(Game);
 	query.equalTo('originUrl',url);
 	return query.first();
@@ -159,7 +160,7 @@ function validOriginUrl(url){
  * @return {promise}    [成功：获取的discover对象]
  */
 function getDiscover(id){
-	var Discover = AV.Object.extend('Discover');
+	var Discover = global.Discover;
 	var query    = new AV.Query(Discover);
 	return query.get(id);
 }
@@ -171,7 +172,7 @@ function getDiscover(id){
  */
 function duplicateCheck(discover){
 	var promise  = new AV.Promise();
-	var Discover = AV.Object.extend('Discover');
+	var Discover = global.Discover;
 	var query    = new AV.Query(Discover);
 	query.equalTo('userId',discover.userId);
 	var game = AV.Object.createWithoutData('Game', discover.game);
@@ -211,7 +212,7 @@ function validDiscover(discover){
 	result.title       = discover.title;
 	result.img         = discover.img.split(',');
 	result.isLast      = true;
-	var Discover       = AV.Object.extend('Discover');
+	var Discover       = global.Discover;
 	var _discover      = new Discover(result);
 	_discover.set('game',AV.Object.createWithoutData("Game", discover.game));
 	return _discover.save();
@@ -224,7 +225,7 @@ function validDiscover(discover){
  */
 function hideOldDiscover(discover){
 	var promise = new AV.Promise();
-	var Discover  = AV.Object.extend('Discover');
+	var Discover  = global.Discover;
 	var query = new AV.Query(Discover);
 	query.equalTo('game',discover.get('game'));
 	query.notEqualTo('objectId',discover.id);
@@ -253,7 +254,7 @@ function hideOldDiscover(discover){
  * 发现列表查询入口
  */
 router.get('/list',function(req,res){
-	var Discover = AV.Object.extend('Discover');
+	var Discover = global.Discover;
 	var query    = new AV.Query(Discover);
 	query.descending('createdAt');
 	if(!req.query.debug){
@@ -323,13 +324,32 @@ function searchTitle(req,res){
 }
 
 /**
- * 首页推荐发现列表入口 
+ * 首页推荐发现列表入口
+ * 设置了缓存3分钟
  */
 router.get('/index',function(req,res){
-	var Game     = AV.Object.extend('Game');
-	var Discover = AV.Object.extend('Discover');
+	if(global.indexData && moment().unix() - global.indexData.time <= 180){
+		res.json(global.indexData);
+	}else{
+		getIndexData().then(function(data){
+			global.indexData = data;
+			res.json(data);
+		},function(err){
+			res.json(global.indexData);
+		})
+	}
+});
+
+/**
+ * 获取首页发现数据函数
+ * @return {Promise} 首页三个板块的数据
+ */
+function getIndexData() {
+	var Game     = global.Game;
+	var Discover = global.Discover;
 	var webQuery = new AV.Query(Discover);
 	var webInnerQuery = new AV.Query(Game);
+	var promise = new AV.Promise();
 	webInnerQuery.equalTo('type',1);
 	webInnerQuery.greaterThan('times',0);
 	webInnerQuery.descending('updatedAt');
@@ -377,13 +397,16 @@ router.get('/index',function(req,res){
 		result.web = games[0];
 		result.pc = games[1];
 		result.phone = games[2];
-		res.json(result);
+		result.time = moment().unix();
+		promise.resolve(result);
 	},function(err){
 		err.status = 109;
 		err.msg = '获取发现列表失败';
-		res.json(err);
+		err.time = moment().unix();
+		promise.reject(err);
 	});
-});
+	return promise;
+}
 
 /**
  * 发现详情页入口
@@ -393,7 +416,7 @@ router.get('/:id',function(req,res){
 		getListGame(req.params.id,res);
 		return;
 	}
-	var Discover = AV.Object.extend('Discover');
+	var Discover = global.Discover;
 	var query    = new AV.Query(Discover);
 	query.equalTo('discoverId',parseInt(req.params.id));
 	query.include('game');
@@ -437,8 +460,8 @@ router.get('/:id',function(req,res){
  * @return {promise}        [成功：discover对象数组||失败：错误信息]
  */
 function getOtherUser(gameid,userid){
-	var Discover  = AV.Object.extend('Discover');
-	var Game      = AV.Object.extend('Game');
+	var Discover  = global.Discover;
+	var Game      = global.Game;
 	var querygame = new AV.Query(Game);
 	querygame.equalTo("objectId",gameid);
 	var queryuser = new AV.Query(Discover);
@@ -455,10 +478,10 @@ function getOtherUser(gameid,userid){
  * @return {promise}        [成功：discover对象||失败：错误信息]
  */
 function getOtherGame(gameid,userid){
-	var Game      = AV.Object.extend('Game');
+	var Game      = global.Game;
 	var query     = new AV.Query(Game);
 	query.equalTo("objectId",gameid);
-	var Discover  = AV.Object.extend('Discover');
+	var Discover  = global.Discover;
 	var querygame = new AV.Query(Discover);
 	querygame.doesNotMatchQuery('game',query);
 	querygame.equalTo('userId',userid);
@@ -472,7 +495,7 @@ function getOtherGame(gameid,userid){
  * @return {promise}        [成功：discover对象数组||失败：错误信息]
  */
 function getNearGame(discoverId){
-	var Discover = AV.Object.extend('Discover');
+	var Discover = global.Discover;
 	var queryPrev = new AV.Query(Discover);
 	var queryNext = new AV.Query(Discover);
 	queryPrev.select('title','discoverId');
@@ -491,7 +514,7 @@ function getNearGame(discoverId){
  */
 function getListGame(ids,res){
 	ids = ids.split('-');
-	var Discover = AV.Object.extend('Discover');
+	var Discover = global.Discover;
 	var query = new AV.Query(Discover);
 	_.map(ids,function(id,key){
 		ids[key] = parseInt(id);
@@ -511,7 +534,7 @@ function getListGame(ids,res){
 router.delete('/:id',function(req,res){
 	// 显示上个 最近的该游戏的推荐还没写
 	// var discover = AV.Object.createWithoutData('Discover',req.params.id);
-	var Discover = AV.Object.extend('Discover');
+	var Discover = global.Discover;
 	var query = new AV.Query(Discover);
 	query.equalTo('objectId',req.params.id);
 	query.include('game');

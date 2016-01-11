@@ -747,7 +747,7 @@ function createGame(url,res){
 		delete result.url;
 		result.u77Id = result.u77Id || 0;
 		result.times = 0;
-		var Game = AV.Object.extend('Game');
+		var Game = global.Game;
 		var _game = new Game(result);
 		_game.save().then(function(__game){
 			__game.set('status',0);
@@ -781,7 +781,7 @@ function createGame(url,res){
 router.get('/:url',function(req,res){
 	var url = req.params.url;
 	// query game
-	var Game = AV.Object.extend('Game');
+	var Game = global.Game;
 	var query = new AV.Query(Game);
 	query.equalTo('originUrl',url);
 	query.first().then(function(game){

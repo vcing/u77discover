@@ -15,12 +15,18 @@ var cookieParser = require('cookie-parser');
 var bodyParser   = require('body-parser');
 var config       = require('./config/config.js');
 var AV           = require('leanengine');
+var _AV          = require('./cloud/av.js');
 var api          = require('./api');
 var app          = express();
 
 
 // 使用 LeanEngine 中间件
 app.use(AV.Cloud);
+
+// 全局定义类(表)实例
+global.Game     = _AV.Object.extend('Game');
+global.Discover = _AV.Object.extend('Discover');
+
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({

@@ -7,7 +7,7 @@ var _ 		= require('lodash');
  * 列表入口
  */
 router.get('/list',function(req,res){
-	var Game = AV.Object.extend('Game');
+	var Game = global.Game;
 	var query = new AV.Query(Game);
 	if(req.query.orderBy){
 		query.descending(req.query.orderBy);
@@ -70,8 +70,8 @@ router.post('/:id',function(req,res){
  * 删除游戏入口
  */
 router.delete('/:id',function(req,res){
-	var Game = AV.Object.extend('Game');
-	var Discover = AV.Object.extend('Discover');
+	var Game = global.Game;
+	var Discover = global.Discover;
 	var query = new AV.Query(Game);
 	var game;
 	query.get(req.params.id)
