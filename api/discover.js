@@ -258,6 +258,7 @@ router.get('/list',function(req,res){
 	var query    = new AV.Query(Discover);
 	var skip	 = parseInt(req.query.skip) ? parseInt(req.query.skip) : 0;
 	var page	 = parseInt(req.query.page) ? parseInt(req.query.page) : 0;
+	var limit	 = parseInt(req.query.limit) ? parseInt(req.query.limit) : 20;
 	query.descending('createdAt');
 	if(!req.query.debug){
 		query.equalTo('isLast',true);	
@@ -291,7 +292,7 @@ router.get('/list',function(req,res){
 		return;
 	}
 	query.include('game');
-	query.limit(20);
+	query.limit(limit);
 	query.find().then(function(result){
 		_.map(result,function(discover){
 			discover.set('game',discover.get('game').toJSON());
