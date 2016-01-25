@@ -256,6 +256,8 @@ function hideOldDiscover(discover){
 router.get('/list',function(req,res){
 	var Discover = global.Discover;
 	var query    = new AV.Query(Discover);
+	var skip	 = parseInt(req.query.skip) ? parseInt(req.query.skip) : 0;
+	var page	 = parseInt(req.query.page) ? parseInt(req.query.page) : 0;
 	query.descending('createdAt');
 	if(!req.query.debug){
 		query.equalTo('isLast',true);	
@@ -263,8 +265,10 @@ router.get('/list',function(req,res){
 	if(req.query.isLast){
 		query.equalTo('isLast',eval(req.query.isLast));
 	}
-	if(req.query.page){
-		query.skip((req.query.page-1) * 20);
+	if(page){
+		query.skip((page-1) * 80 + skip);
+	}else{
+		query.skip(skip);
 	}
 	if(req.query.searchType&&req.query.keywords){
 		switch(req.query.searchType){
