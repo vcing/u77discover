@@ -259,6 +259,9 @@ router.get('/list',function(req,res){
 	var skip	 = parseInt(req.query.skip) ? parseInt(req.query.skip) : 0;
 	var page	 = parseInt(req.query.page) ? parseInt(req.query.page) : 0;
 	var limit	 = parseInt(req.query.limit) ? parseInt(req.query.limit) : 20;
+	var Game = global.Game;
+	var queryGame = new AV.Query(Game);
+	var type	 = parseInt(req.query.type) ? parseInt(req.query.type) : 0;
 	query.descending('createdAt');
 	if(!req.query.debug){
 		query.equalTo('isLast',true);	
@@ -270,6 +273,10 @@ router.get('/list',function(req,res){
 		query.skip((page-1) * 80 + skip);
 	}else{
 		query.skip(skip);
+	}
+	if(type){
+		queryGame.equalTo('type',type);
+		query.matchesQuery('game',queryGame);
 	}
 	if(req.query.searchType&&req.query.keywords){
 		switch(req.query.searchType){
