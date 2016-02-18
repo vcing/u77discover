@@ -10,9 +10,9 @@ router.get('/list',function(req,res){
 	var Game = global.Game;
 	var query = new AV.Query(Game);
 	if(req.query.orderBy){
-		query.descending(req.query.orderBy);
+		query.addDescending(req.query.orderBy);
 	}else{
-		query.descending('createdAt');
+		query.addDescending('createdAt');
 	}
 	if(req.query.type)query.equalTo('type',parseInt(req.query.type));
 	if(req.query.page)query.skip((req.query.page-1) * 20);

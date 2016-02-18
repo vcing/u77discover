@@ -4,17 +4,17 @@ var q 		= require('q');
 var _ 		= require('lodash');
 var moment  = require('moment');
 
-router.get('/test',function(req,res){
-	AV.Query.doCloudQuery("select include game,* from Discover where title like '%火%'",{
-		success:function(result){
-			res.json(result);
-		},
-		error: function(error){
-			//查询失败，查看 error
-			res.json(error);
-		}
-	})
-});
+// router.get('/test',function(req,res){
+// 	AV.Query.doCloudQuery("select include game,* from Discover where title like '%火%'",{
+// 		success:function(result){
+// 			res.json(result);
+// 		},
+// 		error: function(error){
+// 			//查询失败，查看 error
+// 			res.json(error);
+// 		}
+// 	})
+// });
 
 /**
  * 发现修改入口
@@ -229,7 +229,7 @@ function hideOldDiscover(discover){
 	var query = new AV.Query(Discover);
 	query.equalTo('game',discover.get('game'));
 	query.notEqualTo('objectId',discover.id);
-	query.descending('createdAt');
+	query.addDescending('createdAt');
 	query.first()
 	.then(function(_discover){
 		if(_discover){
@@ -250,6 +250,27 @@ function hideOldDiscover(discover){
 	return promise;
 }
 
+
+// router.get('/test',function(req,res){
+// 	var Discover = global.Discover;
+// 	var query    = new AV.Query(Discover);
+// 	var queryGame = new AV.Query(Game);
+// 	queryGame.addDescending('createdAt');
+// 	queryGame.equalTo('type',1);
+// 	query.matchesQuery('game',queryGame);
+// 	query.addDescending('createdAt');
+// 	query.find().then(function(result){
+// 		_.map(result,function(discover){
+// 			discover.set('game',discover.get('game').toJSON());
+// 		});
+// 		res.json(result);
+// 	},function(err){
+// 		err.status = 108;
+// 		err.msg = '获取发现列表失败';
+// 		res.json(err);
+// 	});
+// });
+
 /**
  * 发现列表查询入口
  */
@@ -262,7 +283,7 @@ router.get('/list',function(req,res){
 	var Game = global.Game;
 	var queryGame = new AV.Query(Game);
 	var type	 = parseInt(req.query.type) ? parseInt(req.query.type) : 0;
-	query.descending('createdAt');
+	query.addDescending('createdAt');
 	if(!req.query.debug){
 		query.equalTo('isLast',true);	
 	}
@@ -275,6 +296,7 @@ router.get('/list',function(req,res){
 		query.skip(skip);
 	}
 	if(type){
+		queryGame.addDescending('createdAt');
 		queryGame.equalTo('type',type);
 		query.matchesQuery('game',queryGame);
 	}
@@ -364,21 +386,21 @@ function getIndexData() {
 	var promise = new AV.Promise();
 	webInnerQuery.equalTo('type',1);
 	webInnerQuery.greaterThan('times',0);
-	webInnerQuery.descending('updatedAt');
+	webInnerQuery.addDescending('updatedAt');
 	webInnerQuery.limit(5);
 	webQuery.matchesQuery('game',webInnerQuery);
 	webQuery.equalTo('isLast',true);
-	webQuery.descending('createdAt');
+	webQuery.addDescending('createdAt');
 	
 	var pcQuery = new AV.Query(Discover);
 	var pcInnerQuery = new AV.Query(Game);
 	pcInnerQuery.equalTo('type',2);
 	pcInnerQuery.greaterThan('times',0);
-	pcInnerQuery.descending('updatedAt');
+	pcInnerQuery.addDescending('updatedAt');
 	pcInnerQuery.limit(5);
 	pcQuery.matchesQuery('game',pcInnerQuery);
 	pcQuery.equalTo('isLast',true);
-	pcQuery.descending('createdAt');
+	pcQuery.addDescending('createdAt');
 
 	var androidQuery = new AV.Query(Game);
 	androidQuery.greaterThan('times',0);
@@ -391,12 +413,12 @@ function getIndexData() {
 	iOSQuery.limit(5);
 
 	var phoneQuery = new AV.Query.or(androidQuery,iOSQuery);
-	phoneQuery.descending('updatedAt');
+	phoneQuery.addDescending('updatedAt');
 	phoneQuery.limit(5);
 	var pQuery = new AV.Query(Discover);
 	pQuery.matchesQuery('game',phoneQuery);
 	pQuery.equalTo('isLast',true);
-	pQuery.descending('createdAt');
+	pQuery.addDescending('createdAt');
 
 	AV.Promise.all([
 		webQuery.find(),
@@ -479,7 +501,7 @@ function getOtherUser(gameid,userid){
 	var queryuser = new AV.Query(Discover);
 	queryuser.matchesQuery('game',querygame);
 	queryuser.notEqualTo('userId',userid);
-	queryuser.ascending("createdAt");
+	queryuser.addAscending("createdAt");
 	return queryuser.find();
 }
 
@@ -497,7 +519,7 @@ function getOtherGame(gameid,userid){
 	var querygame = new AV.Query(Discover);
 	querygame.doesNotMatchQuery('game',query);
 	querygame.equalTo('userId',userid);
-	querygame.descending("createdAt");
+	querygame.addDescending("createdAt");
 	return querygame.first();
 }
 
