@@ -9,6 +9,7 @@ var _ 		= require('lodash');
 router.get('/list',function(req,res){
 	var Game = global.Game;
 	var query = new AV.Query(Game);
+	console.log(req.query);
 	if(req.query.orderBy){
 		query.addDescending(req.query.orderBy);
 	}else{
@@ -16,10 +17,10 @@ router.get('/list',function(req,res){
 	}
 	if(req.query.type)query.equalTo('type',parseInt(req.query.type));
 	if(req.query.page)query.skip((req.query.page-1) * 20);
-	if(req.query.searchType&&req.query.keywords){
-		if(_.includes(['title','description','originUrl'],req.query.searchType))return searchGame(req,res);
-		if(_.includes(['times','type','u77Id'],req.query.searchType))req.query.keywords = parseInt(req.query.keywords);
-		query.equalTo(req.query.searchType,req.query.keywords);
+	if(req.query.search_type&&req.query.keywords){
+		if(_.includes(['title','description','originUrl'],req.query.search_type))return searchGame(req,res);
+		if(_.includes(['times','type','u77Id'],req.query.search_type))req.query.keywords = parseInt(req.query.keywords);
+		query.equalTo(req.query.search_type,req.query.keywords);
 	}
 	query.limit(20);
 	query.find().then(function(result){
@@ -33,7 +34,8 @@ router.get('/list',function(req,res){
 
 function searchGame(req,res){
 	var cql = "select * from Game where ";
-	cql += req.query.searchType + ' like "%'+req.query.keywords+'%"';
+	cql += req.query.search_type + ' like "%'+req.query.keywords+'%"';
+	console.log(cql);
 	AV.Query.doCloudQuery(cql,{
 		success:function(result){
 			res.json(result.results);
