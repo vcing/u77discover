@@ -229,7 +229,7 @@ function hideOldDiscover(discover){
 	var query = new AV.Query(Discover);
 	query.equalTo('game',discover.get('game'));
 	query.notEqualTo('objectId',discover.id);
-	query.descending('createdAt');
+	query.addDescending('createdAt');
 	query.first()
 	.then(function(_discover){
 		if(_discover){
@@ -262,7 +262,7 @@ router.get('/list',function(req,res){
 	var Game = global.Game;
 	var queryGame = new AV.Query(Game);
 	var type	 = parseInt(req.query.type) ? parseInt(req.query.type) : 0;
-	query.descending('createdAt');
+	query.addDescending('createdAt');
 	if(!req.query.debug){
 		query.equalTo('isLast',true);	
 	}
@@ -364,21 +364,21 @@ function getIndexData() {
 	var promise = new AV.Promise();
 	webInnerQuery.equalTo('type',1);
 	webInnerQuery.greaterThan('times',0);
-	webInnerQuery.descending('updatedAt');
+	webInnerQuery.addDescending('updatedAt');
 	webInnerQuery.limit(5);
 	webQuery.matchesQuery('game',webInnerQuery);
 	webQuery.equalTo('isLast',true);
-	webQuery.descending('createdAt');
+	webQuery.addDescending('createdAt');
 	
 	var pcQuery = new AV.Query(Discover);
 	var pcInnerQuery = new AV.Query(Game);
 	pcInnerQuery.equalTo('type',2);
 	pcInnerQuery.greaterThan('times',0);
-	pcInnerQuery.descending('updatedAt');
+	pcInnerQuery.addDescending('updatedAt');
 	pcInnerQuery.limit(5);
 	pcQuery.matchesQuery('game',pcInnerQuery);
 	pcQuery.equalTo('isLast',true);
-	pcQuery.descending('createdAt');
+	pcQuery.addDescending('createdAt');
 
 	var androidQuery = new AV.Query(Game);
 	androidQuery.greaterThan('times',0);
@@ -391,12 +391,12 @@ function getIndexData() {
 	iOSQuery.limit(5);
 
 	var phoneQuery = new AV.Query.or(androidQuery,iOSQuery);
-	phoneQuery.descending('updatedAt');
+	phoneQuery.addDescending('updatedAt');
 	phoneQuery.limit(5);
 	var pQuery = new AV.Query(Discover);
 	pQuery.matchesQuery('game',phoneQuery);
 	pQuery.equalTo('isLast',true);
-	pQuery.descending('createdAt');
+	pQuery.addDescending('createdAt');
 
 	AV.Promise.all([
 		webQuery.find(),
@@ -497,7 +497,7 @@ function getOtherGame(gameid,userid){
 	var querygame = new AV.Query(Discover);
 	querygame.doesNotMatchQuery('game',query);
 	querygame.equalTo('userId',userid);
-	querygame.descending("createdAt");
+	querygame.addDescending("createdAt");
 	return querygame.first();
 }
 
