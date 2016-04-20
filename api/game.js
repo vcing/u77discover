@@ -9,7 +9,6 @@ var _ 		= require('lodash');
 router.get('/list',function(req,res){
 	var Game = global.Game;
 	var query = new AV.Query(Game);
-	console.log(req.query);
 	if(req.query.orderBy){
 		query.addDescending(req.query.orderBy);
 	}else{
@@ -35,7 +34,6 @@ router.get('/list',function(req,res){
 function searchGame(req,res){
 	var cql = "select * from Game where ";
 	cql += req.query.search_type + ' like "%'+req.query.keywords+'%"';
-	console.log(cql);
 	AV.Query.doCloudQuery(cql,{
 		success:function(result){
 			res.json(result.results);

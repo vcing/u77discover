@@ -724,6 +724,7 @@ function fetchFromUSA(url){
 		method:'get'
 	},function(err,res,body){
 		if(err || !body){
+			err = err || {};
 			err.status = 133;
 			err.msg = "未找到游戏资源.";
 			deffered.reject(err);
