@@ -296,11 +296,11 @@ router.get('/list',function(req,res){
 		query.skip(skip);
 	}
 	if(type){
-		queryGame.addDescending('createdAt');
 		queryGame.equalTo('type',type);
 	}
-	var badExp = /^((?!3ewd.com).)*$/;
+	var badExp = /^((?!3ewd\.com).)*$/;
 	queryGame.matches('originUrl', badExp);
+	queryGame.addDescending('createdAt');
 	query.matchesQuery('game',queryGame);
 	if(req.query.searchType&&req.query.keywords){
 		switch(req.query.searchType){
