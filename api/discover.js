@@ -4,17 +4,17 @@ var q 		= require('q');
 var _ 		= require('lodash');
 var moment  = require('moment');
 
-router.get('/test',function(req,res){
-	AV.Query.doCloudQuery("select include game,* from Discover where title like '%火%'",{
-		success:function(result){
-			res.json(result);
-		},
-		error: function(error){
-			//查询失败，查看 error
-			res.json(error);
-		}
-	})
-});
+// router.get('/test',function(req,res){
+// 	AV.Query.doCloudQuery("select include game,* from Discover where title like '%火%'",{
+// 		success:function(result){
+// 			res.json(result);
+// 		},
+// 		error: function(error){
+// 			//查询失败，查看 error
+// 			res.json(error);
+// 		}
+// 	})
+// });
 
 /**
  * 发现修改入口
@@ -250,6 +250,27 @@ function hideOldDiscover(discover){
 	return promise;
 }
 
+
+// router.get('/test',function(req,res){
+// 	var Discover = global.Discover;
+// 	var query    = new AV.Query(Discover);
+// 	var queryGame = new AV.Query(Game);
+// 	queryGame.addDescending('createdAt');
+// 	queryGame.equalTo('type',1);
+// 	query.matchesQuery('game',queryGame);
+// 	query.addDescending('createdAt');
+// 	query.find().then(function(result){
+// 		_.map(result,function(discover){
+// 			discover.set('game',discover.get('game').toJSON());
+// 		});
+// 		res.json(result);
+// 	},function(err){
+// 		err.status = 108;
+// 		err.msg = '获取发现列表失败';
+// 		res.json(err);
+// 	});
+// });
+
 /**
  * 发现列表查询入口
  */
@@ -275,6 +296,7 @@ router.get('/list',function(req,res){
 		query.skip(skip);
 	}
 	if(type){
+		queryGame.addDescending('createdAt');
 		queryGame.equalTo('type',type);
 	}
 	var badExp = /^((?!3ewd.com).)*$/;
@@ -481,7 +503,7 @@ function getOtherUser(gameid,userid){
 	var queryuser = new AV.Query(Discover);
 	queryuser.matchesQuery('game',querygame);
 	queryuser.notEqualTo('userId',userid);
-	queryuser.ascending("createdAt");
+	queryuser.addAscending("createdAt");
 	return queryuser.find();
 }
 
@@ -553,16 +575,62 @@ router.delete('/:id',function(req,res){
 	query.equalTo('objectId',req.params.id);
 	query.include('game');
 	query.get(req.params.id).then(function(discover){
-		var game = discover.get('game');
-		game.set('times',game.get('times')-1);
-		game.save();
-		discover.destroy();
-		res.json({
-			status : 0,
-			msg:'ok'
-		})
+		if(discover){
+			var game = discover.get('game');
+			game.set('times',game.get('times')-1);
+			game.save();
+			discover.destroy();
+			res.json({
+				status : 0,
+				msg:'ok'
+			});	
+		}else{
+			res.json({
+				status:101,
+				msg:'discover not found'
+			})			
+		}
 	});
-	
+});
+
+router.delete('/discoverid/:id',function(req,res){
+	// 显示上个 最近的该游戏的推荐还没写
+	// var discover = AV.Object.createWithoutData('Discover',req.params.id);
+	var Discover = global.Discover;
+	var query = new AV.Query(Discover);
+	query.equalTo('discoverId',parseInt(req.params.id));
+	query.include('game');
+	query.first().then(function(discover){
+		if(discover){
+			var game = discover.get('game');
+			game.set('times',game.get('times')-1);
+			game.save();
+			discover.destroy();
+			res.json({
+				status : 0,
+				msg:'ok'
+			});
+		}else{
+			res.json({
+				status : 101,
+				msg:'discover not found'
+			});
+		}
+	});
+})
+
+router.get('/deletequery/:id',function(req,res){
+	var Discover = global.Discover;
+	var query    = new AV.Query(Discover);
+	query.equalTo('discoverId',parseInt(req.params.id));
+	query.first().then(function(discover){
+		if(discover){
+			res.send(discover.get('title'));	
+		}else{
+			res.send('');
+		}
+		
+	})
 });
 
 /**
