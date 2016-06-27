@@ -729,11 +729,15 @@ function fetchFromUSA(url){
 			deffered.reject(err);
 			return false;
 		}
-		var result = JSON.parse(body);
-		if(!result.status){
-			deffered.resolve(result);
-		}else{
-			deffered.reject(result);
+		try{
+			var result = JSON.parse(body);
+			if(!result.status){
+				deffered.resolve(result);
+			}else{
+				deffered.reject(result);
+			}
+		}catch(e){
+			deffered.reject(e);
 		}
 	});
 	return deffered.promise;

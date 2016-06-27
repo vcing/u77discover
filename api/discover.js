@@ -276,8 +276,10 @@ router.get('/list',function(req,res){
 	}
 	if(type){
 		queryGame.equalTo('type',type);
-		query.matchesQuery('game',queryGame);
 	}
+	var badExp = /^((?!3ewd.com).)*$/;
+	queryGame.matches('originUrl', badExp);
+	query.matchesQuery('game',queryGame);
 	if(req.query.searchType&&req.query.keywords){
 		switch(req.query.searchType){
 			case 'title':
