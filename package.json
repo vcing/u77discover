@@ -15,7 +15,7 @@
     "express": "^4.13.3",
     "iconv-lite": "^0.4.13",
     "jquery": "^2.1.4",
-    "leanengine": "^0.3.0",
+    "leanengine": "latest",
     "lodash": "^3.10.1",
     "moment": "^2.10.6",
     "path": "^0.12.7",
