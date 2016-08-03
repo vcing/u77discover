@@ -91,6 +91,7 @@ function combineDiscover(params){
 			cover       : params.cover,
 			title       : params.title,
 			img 		: params.img,
+			isCheck 	: params.isCheck,
 			game 		: game.id
 		}
 		return AV.Promise.as(result);
@@ -211,6 +212,7 @@ function validDiscover(discover){
 	result.cover       = discover.cover;
 	result.title       = discover.title;
 	result.img         = discover.img.split(',');
+	result.isCheck     = (discover.isCheck == "true" ? true : false),
 	result.isLast      = true;
 	var Discover       = global.Discover;
 	var _discover      = new Discover(result);
@@ -245,7 +247,6 @@ function hideOldDiscover(discover){
 		}else{
 			promise.resolve(discover.id);
 		}
-		
 	});
 	return promise;
 }
@@ -298,6 +299,7 @@ router.get('/list',function(req,res){
 	if(type){
 		queryGame.equalTo('type',type);
 	}
+	query.equalTo('isCheck',true);
 	var badExp = /^((?!3ewd\.com).)*$/;
 	queryGame.matches('originUrl', badExp);
 	queryGame.addDescending('createdAt');
@@ -392,6 +394,7 @@ function getIndexData() {
 	webInnerQuery.limit(5);
 	webQuery.matchesQuery('game',webInnerQuery);
 	webQuery.equalTo('isLast',true);
+	webQuery.equalTo('isCheck',true);
 	webQuery.addDescending('createdAt');
 	
 	var pcQuery = new AV.Query(Discover);
@@ -402,6 +405,7 @@ function getIndexData() {
 	pcInnerQuery.limit(5);
 	pcQuery.matchesQuery('game',pcInnerQuery);
 	pcQuery.equalTo('isLast',true);
+	pcQuery.equalTo('isCheck',true);
 	pcQuery.addDescending('createdAt');
 
 	var androidQuery = new AV.Query(Game);
@@ -420,6 +424,7 @@ function getIndexData() {
 	var pQuery = new AV.Query(Discover);
 	pQuery.matchesQuery('game',phoneQuery);
 	pQuery.equalTo('isLast',true);
+	pQuery.equalTo('isCheck',true);
 	pQuery.addDescending('createdAt');
 
 	AV.Promise.all([
@@ -456,6 +461,7 @@ router.get('/:id',function(req,res){
 	var query    = new AV.Query(Discover);
 	query.equalTo('discoverId',parseInt(req.params.id));
 	query.include('game');
+	query.equalTo('isCheck',true);
 	query.first().then(function(discover){
 		if(!discover){
 			res.send('');
@@ -502,6 +508,7 @@ function getOtherUser(gameid,userid){
 	querygame.equalTo("objectId",gameid);
 	var queryuser = new AV.Query(Discover);
 	queryuser.matchesQuery('game',querygame);
+	queryuser.equalTo('isCheck',true);
 	queryuser.notEqualTo('userId',userid);
 	queryuser.addAscending("createdAt");
 	return queryuser.find();
@@ -520,6 +527,7 @@ function getOtherGame(gameid,userid){
 	var Discover  = global.Discover;
 	var querygame = new AV.Query(Discover);
 	querygame.doesNotMatchQuery('game',query);
+	querygame.equalTo('isCheck',true);
 	querygame.equalTo('userId',userid);
 	querygame.addDescending("createdAt");
 	return querygame.first();
@@ -537,7 +545,9 @@ function getNearGame(discoverId){
 	queryPrev.select('title','discoverId');
 	queryNext.select('title','discoverId');
 	queryPrev.equalTo('discoverId',parseInt(discoverId)-1);
+	queryPrev.equalTo('isCheck',true);
 	queryNext.equalTo('discoverId',parseInt(discoverId)+1);
+	queryNext.equalTo('isCheck',true);
 	var mainQuery = AV.Query.or(queryPrev,queryNext);
 	return mainQuery.find();
 }
@@ -556,6 +566,7 @@ function getListGame(ids,res){
 		ids[key] = parseInt(id);
 	});
 	query.containedIn('discoverId',ids);
+	query.equalTo("isCheck",true);
 	query.find().then(function(result){
 		result.status = 0;
 		result.msg = 'ok';
